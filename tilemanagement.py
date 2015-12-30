@@ -19,3 +19,5 @@ def tileext(tiletype, tile=(0,0), zoom=0):
 
 def filename(cachefolder, tiletype, tile, zoom):
     return os.path.join(cachefolder, tiletype, "{z}_{x}_{y}{ext}".format(z=zoom, x=tile[0], y=tile[1], ext=tileext(tiletype)))
+
+    

@@ -1,12 +1,8 @@
 from __future__ import division
 import math
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-from geolib.geom2d import Bounds
-from qpynygeolib.maplayers import LayerFactory
-from .tiles import TiledBitmapLayer
+__PROJECTOR = QgsCoordinateTransform(QgsCoordinateReferenceSystem(4326), 
+                                     QgsCoordinateReferenceSystem(3857))
 
 def nwcorner(tilex, tiley, zoom):
     n = 2.0 ** zoom
@@ -15,13 +11,24 @@ def nwcorner(tilex, tiley, zoom):
     lat_deg = math.degrees(lat_rad)
     return (lon_deg, lat_deg)
 
-def extent(tilex, tiley, zoom):
+def params(tilex, tiley, zoom):
     topleft= nwcorner(tilex, tiley, zoom)
     bottomright = nwcorner(tilex+1, tiley+1, zoom)
-    return {"top":topleft[1],
-            "bottom":bottomright[1],
-            "left":topleft[0],
-            "right":bottomright[0]}
+    ext = __PROJECTOR.transform(QgsRectangle(QgsPoint(*topleft), 
+                                             QgsPoint(*bottomright)))
+    
+    return {"toplat":topleft[1],
+            "bottomlat":bottomright[1],
+            "leftlon":topleft[0],
+            "rightlon":bottomright[0],
+            "xmin":ext.xMinimum(),
+            "xmax":ext.xMaximum(),
+            "ymin":ext.yMinimum(),
+            "ymax":ext.yMaximum(),
+            "height":ext.height(),
+            "width":ext.width(),
+            "perpixelx":(ext.width()/256.0),
+            "perpixely":(-ext.height()/256.0)} #negative built in
 
 def tile(lon, lat, zoom):
         maxTile = 2 ** zoom - 1
@@ -38,7 +45,7 @@ def tile(lon, lat, zoom):
             xtile = maxTile
         elif xtile < 0:
             xtile = 0   
-        return (xtile, ytile)
+        return (xtile, ytile, zoom)
 
 def tiles(minlon, maxlon, minlat, maxlat, zoom):
     tile1 = tile(minlon, maxlat, zoom)
@@ -46,90 +53,15 @@ def tiles(minlon, maxlon, minlat, maxlat, zoom):
     tilesout = []
     for tilex in range(tile1[0], tile2[0]+1):
         for tiley in range(tile1[1], tile2[1]+1):
-            tilesout.append((tilex, tiley))
+            tilesout.append((tilex, tiley, zoom))
     return tilesout
-
-
-def tileurl(tiletype, tile, zoom):
-    return "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png".replace("$", "").format(z=zoom, x=tile[0], y=tile[1])
     
+def writeauxfile(tilex, tiley, zoom, filename):
+    pars = params(tilex, tiley, zoom)
+    fout = open(filename, "w")
+    fout.write('<PAMDataset>\n  <SRS>PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],AUTHORITY["EPSG","3857"]]</SRS>\n')
+    fout.write('  <GeoTransform>{minx}, {perpixelx}, 0.0, {maxy}, 0.0, {perpixely}</GeoTransform>\n'.format(**pars))
+    fout.write('</PAMDataset>')
+    fout.close()
     
-'''
-s = QSettings()
-oldValidation = s.value( "/Projections/defaultBehaviour", "useGlobal" ).toString()
-s.setValue( "/Projections/defaultBehaviour", "useGlobal" )
-
-ext = QgsRectangle(QgsPoint(-62.05078125, 45.70617928533084), QgsPoint(-61.875, 45.583289756006316))
-tocrs = QgsCoordinateReferenceSystem(3857)
-currentcrs = QgsCoordinateReferenceSystem(4326)
-xform = QgsCoordinateTransform(currentcrs, tocrs)
-extProj = xform.transform(ext)
-rlayer = QgsRasterLayer("/Users/dewey/d/qgisplugins/qosm/11_671_731.png", "testname")
-rlayer.setCrs(tocrs)
-
-
-s.setValue( "/Projections/defaultBehaviour", oldValidation )
-
-
-
-'''
-
-class OpenStreetMapLayer(SlippyTileLayer):
-    
-    URL_SERVERS = ["http://a.tile.openstreetmap.org",
-                    "http://b.tile.openstreetmap.org",
-                    "http://c.tile.openstreetmap.org"]
-    
-    def __init__(self, layerId, cacheDir=None, zIndex=0):
-        super(OpenStreetMapLayer, self).__init__(layerId, "openstreetmap", cacheDir, zIndex)
-    
-    def type(self):
-        return "MapFrameLayer|BitmapLayer|TiledBitmapLayer|SlippyTileLayer|OpenStreetMapLayer"
-    
-    def tileUrls(self, tile):
-        endString = "/%i/%i/%i.png" % (tile[2], tile[0], tile[1])
-        return [server + endString for server in OpenStreetMapLayer.URL_SERVERS]
-
-class MapQuestLayer(SlippyTileLayer):
-    
-    URL_SERVERS = ["http://otile1.mqcdn.com",
-                   "http://otile2.mqcdn.com",
-                   "http://otile3.mqcdn.com",
-                   "http://otile4.mqcdn.com"]
-    
-    def __init__(self, layerId, cacheDir=None, zIndex=0):
-        super(MapQuestLayer, self).__init__(layerId, "mapquest", cacheDir, zIndex)
-    
-    def type(self):
-        return "MapFrameLayer|BitmapLayer|TiledBitmapLayer|SlippyTileLayer|MapQuestLayer"
-    
-    def tileUrls(self, tile):
-        endString = "/tiles/1.0.0/osm/%i/%i/%i.jpg" % (tile[2], tile[0], tile[1])
-        return [server + endString for server in MapQuestLayer.URL_SERVERS]
-    
-    def fileName(self, tile):
-        return "%s_%i_%i_%i.jpg" % (self.tileType(), tile[2], tile[0], tile[1])
-    
-    def maxZoom(self):
-        return 19
-   
-class MapQuestOpenAerialLayer(SlippyTileLayer):
-    
-    def __init__(self, layerId, cacheDir=None, zIndex=0):
-        super(MapQuestOpenAerialLayer, self).__init__(layerId, "mapquestopenaerial", cacheDir, zIndex)
-    
-    def type(self):
-        return "MapFrameLayer|BitmapLayer|TiledBitmapLayer|SlippyTileLayer|MapQuestOpenAerialLayer"
-    
-    def fileName(self, tile):
-        return "%s_%i_%i_%i.jpg" % (self.tileType(), tile[2], tile[0], tile[1])
-    
-    def tileUrls(self, tile):
-        endString = "/tiles/1.0.0/sat/%i/%i/%i.jpg" % (tile[2], tile[0], tile[1])
-        return [server + endString for server in MapQuestLayer.URL_SERVERS]
-    
-    def maxZoom(self):
-        return 12
-    
-
     
