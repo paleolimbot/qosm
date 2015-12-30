@@ -55,6 +55,13 @@ def tiles(minlon, maxlon, minlat, maxlat, zoom):
         for tiley in range(tile1[1], tile2[1]+1):
             tilesout.append((tilex, tiley, zoom))
     return tilesout
+
+def autozoom(pxPerDegreeWidth):
+    zoom = math.log((360.0 / 256.0) * pxPerDegreeWidth) / math.log(2.0)
+    if(int(zoom)==zoom):
+        return int(zoom)
+    else:
+        return int(zoom)+1
     
 def writeauxfile(tilex, tiley, zoom, filename):
     pars = params(tilex, tiley, zoom)
