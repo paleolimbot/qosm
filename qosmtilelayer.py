@@ -43,6 +43,8 @@ class MultiRasterRenderer(QgsMapLayerRenderer):
          
         render = QgsMapRenderer()
         render.setLayerSet([layer.id() for layer in self.rasterlayers])
+        render.setProjectionsEnabled(True)
+        render.setDestinationCrs(rendererContext.coordinateTransform().destCRS())
         
         fout = open("/Users/dewey/Desktop/outputdump.txt", "w")
         for raster in self.rasterlayers:
