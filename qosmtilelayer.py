@@ -28,37 +28,39 @@ class QOSMTileLayerType(QgsPluginLayerType):
 
 class MultiRasterRenderer(QgsMapLayerRenderer):
     
-    def __init__(self, layer, context, rasterlayers):
+    def __init__(self, layer, context):
         QgsMapLayerRenderer.__init__(self, layer.id())
+        self.layer = layer
         self.context = context
-        self.rasterlayers = rasterlayers
-        self.img = QImage(QSize(context.painter().device().width(),
-                                context.painter().device().height()),
-                          QImage.Format_ARGB32_Premultiplied)
     
     def render(self):
         rendererContext = self.context
-        painter = QPainter(self.img)
-        painter.setRenderHint(QPainter.Antialiasing)
-         
-        render = QgsMapRenderer()
-        render.setLayerSet([layer.id() for layer in self.rasterlayers])
-        render.setProjectionsEnabled(True)
-        render.setDestinationCrs(rendererContext.coordinateTransform().destCRS())
-        
-        fout = open("/Users/dewey/Desktop/outputdump.txt", "w")
-        for raster in self.rasterlayers:
-            fout.write("id: " + raster.id() + "\n")
-        fout.close()
-        
-        render.setExtent(rendererContext.extent())
-        render.setOutputSize(self.img.size(), self.img.logicalDpiX())
-        render.render(painter)
-        painter.end()
-        
-        self.img.save("/Users/dewey/Desktop/output.jpg")
-         
-        rendererContext.painter().drawImage(0, 0, self.img)
+        if len(self.layer.loadedlayers) > 0:
+            img = QImage(QSize(self.context.painter().device().width(),
+                                    self.context.painter().device().height()),
+                              QImage.Format_ARGB32_Premultiplied)
+            painter = QPainter()
+            painter.begin(img)
+            painter.setRenderHint(QPainter.Antialiasing)
+             
+            render = QgsMapRenderer()
+            render.setLayerSet([layer.id() for layer in self.layer.loadedlayers.values()])
+            render.setProjectionsEnabled(True)
+            render.setDestinationCrs(rendererContext.coordinateTransform().destCRS())
+            
+            fout = open("/Users/dewey/Desktop/outputdump.txt", "w")
+            for raster in self.layer.loadedlayers.values():
+                fout.write("id: " + raster.id() + "\n")
+            fout.close()
+            
+            render.setExtent(rendererContext.extent())
+            render.setOutputSize(img.size(), img.logicalDpiX())
+            render.render(painter)
+            painter.end()
+            
+            img.save("/Users/dewey/Desktop/output.jpg")
+             
+            rendererContext.painter().drawImage(0, 0, img)
             
         return True
         
@@ -74,9 +76,8 @@ class QOSMTileLayer(QgsPluginLayer):
         self.loadedtiles = set()
         self.loadedlayers = {}
         self.setValid(True)
-        self.treegroup = QgsProject.instance().layerTreeRoot().addGroup("uniquegroupname")
     
-    def refreshtiles(self, canvasextent, canvascrs, widthpx):
+    def refreshtiles(self, canvasextent, canvascrs, widthpx, triggerrepaint=False):
         xform = QgsCoordinateTransform(canvascrs,
                                     QgsCoordinateReferenceSystem(4326))
         extll = xform.transform(canvasextent)
@@ -89,7 +90,7 @@ class QOSMTileLayer(QgsPluginLayer):
         tilestoclean = self.loadedtiles.difference(set(tiles))
         for tile in tilestoclean:
             layer = self.loadedlayers[tile]
-            reg.removeMapLayer(layer)
+            reg.removeMapLayer(layer.id())
             del self.loadedlayers[tile]
             self.loadedtiles.remove(tile)
         
@@ -121,9 +122,11 @@ class QOSMTileLayer(QgsPluginLayer):
                 pass
         
         self.setExtent(canvasextent)
+        if triggerrepaint:
+            self.triggerRepaint()
     
     def createMapRenderer(self, context):
-        return MultiRasterRenderer(self, context, self.loadedlayers.values())
+        return MultiRasterRenderer(self, context)
         
         
         

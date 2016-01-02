@@ -28,7 +28,7 @@ import resources
 from qosm_dialog import qosmDialog
 import os.path
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsMapLayerRegistry, QgsMapLayer
 
 from qosmtilelayer import QOSMTileLayer
 
@@ -184,15 +184,20 @@ class qosm:
         # remove the toolbar
         del self.toolbar
 
+    def refreshLayerTiles(self):
+        self.layer.refreshtiles(self.iface.mapCanvas().extent(), 
+                           self.iface.mapCanvas().mapRenderer().destinationCrs(), 
+                           self.iface.mapCanvas().width(), triggerrepaint=True)
 
     def run(self):
         """Run method that performs all the real work"""
         # add a new qosmtilelayer
         layer = QOSMTileLayer("osm", "OSM Plugin layer")
         self.layer = QgsMapLayerRegistry.instance().addMapLayer(layer)
-        layer.refreshtiles(self.iface.mapCanvas().extent(), 
-                           self.iface.mapCanvas().mapRenderer().destinationCrs(), 
-                           self.iface.mapCanvas().width())
         
+        refreshact = self.add_action(None, "Refresh", self.refreshLayerTiles, add_to_menu=False, add_to_toolbar=False)
+        self.iface.legendInterface().addLegendLayerAction( refreshact, u"My Plugin Menu", u"id2", QgsMapLayer.PluginLayer, False)
+        self.iface.legendInterface().addLegendLayerActionForLayer(refreshact, self.layer)
+
         
         
