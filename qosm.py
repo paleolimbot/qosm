@@ -28,6 +28,10 @@ import resources
 from qosm_dialog import qosmDialog
 import os.path
 
+from qgis.core import QgsMapLayerRegistry
+
+from qosmtilelayer import QOSMTileLayer
+
 
 class qosm:
     """QGIS Plugin Implementation."""
@@ -67,6 +71,8 @@ class qosm:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'qosm')
         self.toolbar.setObjectName(u'qosm')
+        
+        self.layer = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -181,12 +187,12 @@ class qosm:
 
     def run(self):
         """Run method that performs all the real work"""
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+        # add a new qosmtilelayer
+        layer = QOSMTileLayer("osm", "OSM Plugin layer")
+        self.layer = QgsMapLayerRegistry.instance().addMapLayer(layer)
+        layer.refreshtiles(self.iface.mapCanvas().extent(), 
+                           self.iface.mapCanvas().mapRenderer().destinationCrs(), 
+                           self.iface.mapCanvas().width())
+        
+        
+        

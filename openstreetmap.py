@@ -1,6 +1,8 @@
 from __future__ import division
 import math
 
+from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsRectangle, QgsPoint
+
 __PROJECTOR = QgsCoordinateTransform(QgsCoordinateReferenceSystem(4326), 
                                      QgsCoordinateReferenceSystem(3857))
 
@@ -59,16 +61,15 @@ def tiles(minlon, maxlon, minlat, maxlat, zoom):
 def autozoom(pxPerDegreeWidth):
     zoom = math.log((360.0 / 256.0) * pxPerDegreeWidth) / math.log(2.0)
     if(int(zoom)==zoom):
-        return int(zoom)
+        zoom = int(zoom)
     else:
-        return int(zoom)+1
+        zoom = int(zoom)+1
+    return zoom
     
 def writeauxfile(tilex, tiley, zoom, filename):
     pars = params(tilex, tiley, zoom)
     fout = open(filename, "w")
     fout.write('<PAMDataset>\n  <SRS>PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],AUTHORITY["EPSG","3857"]]</SRS>\n')
-    fout.write('  <GeoTransform>{minx}, {perpixelx}, 0.0, {maxy}, 0.0, {perpixely}</GeoTransform>\n'.format(**pars))
+    fout.write('  <GeoTransform>{xmin}, {perpixelx}, 0.0, {ymax}, 0.0, {perpixely}</GeoTransform>\n'.format(**pars))
     fout.write('</PAMDataset>')
     fout.close()
-    
-    
