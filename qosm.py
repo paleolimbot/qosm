@@ -196,7 +196,7 @@ class qosm:
         self.layer = QgsMapLayerRegistry.instance().addMapLayer(layer)
         
         refreshact = self.add_action(None, "Refresh", self.refreshLayerTiles, add_to_menu=False, add_to_toolbar=False)
-        self.iface.legendInterface().addLegendLayerAction( refreshact, u"My Plugin Menu", u"id2", QgsMapLayer.PluginLayer, False)
+        self.iface.legendInterface().addLegendLayerAction(refreshact, u"QOSM Tile Layer", u"id2", QgsMapLayer.PluginLayer, False)
         self.iface.legendInterface().addLegendLayerActionForLayer(refreshact, self.layer)
 
         
