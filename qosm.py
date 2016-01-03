@@ -20,7 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, SIGNAL, QObject,\
+    pyqtSlot
 from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
 import resources
@@ -28,9 +29,9 @@ import resources
 from qosm_dialog import qosmDialog
 import os.path
 
-from qgis.core import QgsMapLayerRegistry, QgsMapLayer
+from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
 
-from qosmtilelayer import QOSMTileLayer
+from qosmtilelayer import QOSMTileLayer, QOSMTileLayerType
 
 
 class qosm:
@@ -72,7 +73,7 @@ class qosm:
         self.toolbar = self.iface.addToolBar(u'qosm')
         self.toolbar.setObjectName(u'qosm')
         
-        self.layer = None
+        self.layers = []
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -170,8 +171,13 @@ class qosm:
         self.add_action(
             icon_path,
             text=self.tr(u'Add OSM tile layer'),
-            callback=self.run,
+            callback=self.addOSMLayer,
             parent=self.iface.mainWindow())
+        
+        
+        self.pluginLayerType = QOSMTileLayerType(self, self.onAddOSMLayer)
+        QgsPluginLayerRegistry.instance().addPluginLayerType(self.pluginLayerType)
+        QgsMapLayerRegistry.instance().layersWillBeRemoved["QStringList"].connect(self.cleanLayerResources)
 
 
     def unload(self):
@@ -183,21 +189,32 @@ class qosm:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        
+        QgsPluginLayerRegistry.instance().removePluginLayerType(QOSMTileLayer.LAYER_TYPE)
+        QgsMapLayerRegistry.instance().layersWillBeRemoved["QStringList"].disconnect(self.cleanLayerResources)
 
-    def refreshLayerTiles(self):
-        self.layer.refreshtiles(self.iface.mapCanvas().extent(), 
-                           self.iface.mapCanvas().mapRenderer().destinationCrs(), 
-                           self.iface.mapCanvas().width(), triggerrepaint=True)
-
-    def run(self):
+    @pyqtSlot()
+    def cleanLayerResources(self, layers):
+        reg = QgsMapLayerRegistry.instance()
+        for layerid in layers:
+            layer = reg.mapLayer(layerid)
+            if isinstance(layer, QOSMTileLayer):
+                layer.cleantiles()
+                #remove from internal cache of layers
+                for i in range(len(self.layers)):
+                    if self.layers[i].id() == layerid:
+                        self.layers.pop(i)
+                        break
+        
+    
+    def addOSMLayer(self):
         """Run method that performs all the real work"""
         # add a new qosmtilelayer
-        layer = QOSMTileLayer("osm", "OSM Plugin layer")
-        self.layer = QgsMapLayerRegistry.instance().addMapLayer(layer)
-        
-        refreshact = self.add_action(None, "Refresh", self.refreshLayerTiles, add_to_menu=False, add_to_toolbar=False)
-        self.iface.legendInterface().addLegendLayerAction(refreshact, u"QOSM Tile Layer", u"id2", QgsMapLayer.PluginLayer, False)
-        self.iface.legendInterface().addLegendLayerActionForLayer(refreshact, self.layer)
+        layer = self.pluginLayerType.createLayer()
+        QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    def onAddOSMLayer(self, layer):
+        self.layers.append(layer)
 
         
         
