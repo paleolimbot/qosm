@@ -4,18 +4,19 @@ Created on Dec 30, 2015
 @author: dewey
 '''
 
-import os, sys
+import os
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import QgsProject, QgsPluginLayer, QgsPluginLayerType, QgsCoordinateTransform, \
                         QgsCoordinateReferenceSystem, QgsRasterLayer, QgsLogger, QgsMapLayerRegistry, \
-                        QgsMapRenderer, QgsBilinearRasterResampler
+                        QgsMapRenderer, QgsBilinearRasterResampler, QgsRectangle
 
 import openstreetmap as osm
 import downloaderthread as downloader
 import tilemanagement as tm
+import qosmsettings
 
 
 class QOSMTileLayerType(QgsPluginLayerType):
@@ -40,6 +41,23 @@ class QOSMTileLayer(QgsPluginLayer):
         self.loadedtiles = set()
         self.loadedlayers = {}
         self.setValid(True)
+        self.actualzoom = None
+        self.specifiedzoom = None #autozoom
+        self.autorefresh = False
+    
+    def zoom(self, widthpx, extll):
+        if self.specifiedzoom is None:
+            autozoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
+            return min(max((tm.minzoom(self.layertype), autozoom)),
+                       tm.maxzoom(self.layertype))
+        else:
+            numtiles = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
+                          extll.yMinimum(), extll.yMaximum(), self.specifiedzoom))
+            if numtiles > qosmsettings.MAX_TILES_DEFAULT:
+                return None
+            else:
+                return self.specifiedzoom
+            
     
     def cleantiles(self):
         reg = QgsMapLayerRegistry.instance()
@@ -48,9 +66,9 @@ class QOSMTileLayer(QgsPluginLayer):
             del self.loadedlayers[tile]
         self.loadedtiles.clear()
     
-    def refreshtiles(self, canvasextent, canvascrs, widthpx, triggerrepaint=False):
+    def refreshtiles(self, canvasextent, canvascrs, widthpx, triggerrepaint=True):
         tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(canvasextent, canvascrs, widthpx)
-        self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles)
+        self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, canvasextent)
         if triggerrepaint:
             self.triggerRepaint()
     
@@ -58,7 +76,10 @@ class QOSMTileLayer(QgsPluginLayer):
         xform = QgsCoordinateTransform(canvascrs,
                                     QgsCoordinateReferenceSystem(4326))
         extll = xform.transform(canvasextent)
-        zoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
+        zoom = self.zoom(widthpx, extll)
+        if zoom is None:
+            return list(self.loadedtiles), [], []
+        
         tiles = osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), zoom)
 
@@ -67,13 +88,13 @@ class QOSMTileLayer(QgsPluginLayer):
         
         #calculate file names and urls
         tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", "osm", tile, zoom) for tile in tilestoload]
-        tileurls = [tm.tileurl("osm", tile, zoom) for tile in tilestoload]
+        tileurls = [tm.tileurl(self.layertype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)
         downloader.download(tileurls, tilefiles)
         return tilestoclean, tilestoload, tilefiles
     
-    def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles):
+    def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles, extent):
         reg = QgsMapLayerRegistry.instance()
         #clean
         for tile in tilestoclean:
@@ -81,8 +102,12 @@ class QOSMTileLayer(QgsPluginLayer):
             del self.loadedlayers[tile]
             self.loadedtiles.remove(tile)
         
+        if len(tilestoload) > 0:
+            self.actualzoom = tilestoload[0][2]
+        else:
+            self.actualzoom = None
+        
         #load
-        extent = None
         for i in range(len(tilestoload)):
             #check file exists
             if os.path.exists(tilefiles[i]):
@@ -99,10 +124,6 @@ class QOSMTileLayer(QgsPluginLayer):
                     
                     self.loadedlayers[tilestoload[i]] = layer.id()
                     self.loadedtiles.add(tilestoload[i])
-                    if extent is None:
-                        extent = layer.extent()
-                    else:
-                        extent = extent.combineExtentWith(layer.extent())
                 else:
                     #report error?
                     pass
@@ -110,8 +131,8 @@ class QOSMTileLayer(QgsPluginLayer):
             else:
                 #report error?
                 pass
-        if not extent is None:    
-            self.setExtent(extent)
+        
+        self.setExtent(extent)
     
     def createimage(self, extent, crs, outputsize):
         render = QgsMapRenderer()
@@ -138,11 +159,12 @@ class QOSMTileLayer(QgsPluginLayer):
         outputsize = QSize(rendererContext.painter().device().width(),
                         rendererContext.painter().device().height())
         
-        tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width())
-        #check if rendering stopped before applying changes to object
-        if rendererContext.renderingStopped():
-            return True
-        self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles)
+        if self.autorefresh:
+            tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width())
+            #check if rendering stopped before applying changes to object
+            if rendererContext.renderingStopped():
+                return True
+            self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, extent)
         
         if len(self.loadedlayers) > 0:
             img = self.createimage(extent, crs, outputsize) 

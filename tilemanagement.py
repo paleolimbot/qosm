@@ -23,4 +23,9 @@ def filename(cachefolder, tiletype, tile, zoom):
 
 def auxfilename(fname):
     return fname + ".aux.xml"
-    
+
+def maxzoom(tiletype):
+    return 21
+
+def minzoom(tiletype):
+    return 1
