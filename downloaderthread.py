@@ -60,7 +60,11 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
             downloadedfiles.append(None)
             continue
         try:
-            if not os.path.isfile(filenames[i]) or overwrite:
+            if not os.path.isfile(filename) or overwrite:
+                #ensure directory is already created
+                directory = os.path.dirname(filename)
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
                 fo = open(filename, "wb")
                 urlhandle = urlopen(url)
                 blocksize = 64*1024

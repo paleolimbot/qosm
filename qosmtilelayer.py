@@ -27,7 +27,7 @@ class QOSMTileLayerType(QgsPluginLayerType):
         self.add_callback = add_callback
 
     def createLayer(self):
-        layer = QOSMTileLayer("osm", "OSM Plugin layer")
+        layer = QOSMTileLayer("http://a.tile.openstreetmap.org/${z}/${x}/${y}.png", "OSM Plugin layer")
         self.add_callback(layer)
         return layer     
 
@@ -91,7 +91,7 @@ class QOSMTileLayer(QgsPluginLayer):
             tilestoload = list(set(tiles).difference(self.loadedtiles))
         
         #calculate file names and urls
-        tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", "osm", tile, zoom) for tile in tilestoload]
+        tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", self.layertype, tile, zoom) for tile in tilestoload]
         tileurls = [tm.tileurl(self.layertype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)

@@ -5,6 +5,9 @@ Created on Dec 30, 2015
 '''
 
 import os
+import hashlib
+
+BUILT_IN_TILETYPES = {"osm":"http://a.tile.openstreetmap.org/${z}/${x}/${y}.png"}
 
 def tileurl(tiletype, tile, zoom, suffix=""):
     '''
@@ -12,14 +15,26 @@ def tileurl(tiletype, tile, zoom, suffix=""):
     for quadkey and suffixes (like the bing token). Possible returning of random
     urls for multiple tile servers?
     '''
-    return "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png".replace("$", "").format(z=zoom, x=tile[0], y=tile[1])+suffix
+    if tiletype in BUILT_IN_TILETYPES:
+        pattern = BUILT_IN_TILETYPES[tiletype]
+    else:
+        pattern = tiletype
+    return pattern.replace("$", "").format(z=zoom, x=tile[0], y=tile[1])+suffix
 
 def tileext(tiletype, tile=(0,0), zoom=0):
     url = tileurl(tiletype, tile, zoom)
     return url[url.rfind("."):]
 
+def tiletypekey(any_tile_type):
+    if any_tile_type in BUILT_IN_TILETYPES:
+        return any_tile_type
+    else:
+        m = hashlib.md5(any_tile_type)
+        return m.hexdigest()
+
 def filename(cachefolder, tiletype, tile, zoom):
-    return os.path.join(cachefolder, tiletype, "{z}_{x}_{y}{ext}".format(z=zoom, x=tile[0], y=tile[1], ext=tileext(tiletype)))
+    return os.path.join(cachefolder, tiletypekey(tiletype), 
+                        "{z}_{x}_{y}{ext}".format(z=zoom, x=tile[0], y=tile[1], ext=tileext(tiletype)))
 
 def auxfilename(fname):
     return fname + ".aux.xml"
