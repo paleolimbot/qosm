@@ -66,13 +66,13 @@ class QOSMTileLayer(QgsPluginLayer):
             del self.loadedlayers[tile]
         self.loadedtiles.clear()
     
-    def refreshtiles(self, canvasextent, canvascrs, widthpx, triggerrepaint=True):
-        tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(canvasextent, canvascrs, widthpx)
+    def refreshtiles(self, canvasextent, canvascrs, widthpx, forcedownload=False, triggerrepaint=True):
+        tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(canvasextent, canvascrs, widthpx, forcedownload)
         self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, canvasextent)
         if triggerrepaint:
             self.triggerRepaint()
     
-    def refreshtiles_get(self, canvasextent, canvascrs, widthpx):
+    def refreshtiles_get(self, canvasextent, canvascrs, widthpx, forcedownload=False):
         xform = QgsCoordinateTransform(canvascrs,
                                     QgsCoordinateReferenceSystem(4326))
         extll = xform.transform(canvasextent)
@@ -82,16 +82,20 @@ class QOSMTileLayer(QgsPluginLayer):
         
         tiles = osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), zoom)
-
-        tilestoclean = self.loadedtiles.difference(set(tiles))
-        tilestoload = list(set(tiles).difference(self.loadedtiles))
+        
+        if forcedownload:
+            tilestoclean = list(self.loadedtiles)
+            tilestoload = tiles
+        else:
+            tilestoclean = self.loadedtiles.difference(set(tiles))
+            tilestoload = list(set(tiles).difference(self.loadedtiles))
         
         #calculate file names and urls
         tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", "osm", tile, zoom) for tile in tilestoload]
         tileurls = [tm.tileurl(self.layertype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)
-        downloader.download(tileurls, tilefiles)
+        downloader.download(tileurls, tilefiles, overwrite=forcedownload)
         return tilestoclean, tilestoload, tilefiles
     
     def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles, extent):
