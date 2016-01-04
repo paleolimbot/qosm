@@ -11,7 +11,7 @@ from PyQt4.QtGui import *
 
 from qgis.core import QgsProject, QgsPluginLayer, QgsPluginLayerType, QgsCoordinateTransform, \
                         QgsCoordinateReferenceSystem, QgsRasterLayer, QgsLogger, QgsMapLayerRegistry, \
-                        QgsMapRenderer
+                        QgsMapRenderer, QgsBilinearRasterResampler
 
 import openstreetmap as osm
 import downloaderthread as downloader
@@ -94,6 +94,9 @@ class QOSMTileLayer(QgsPluginLayer):
                 layer = QgsRasterLayer(tilefiles[i], layername)
                 if layer.isValid():
                     layer = reg.addMapLayer(layer, False)
+                    layer.resampleFilter().setZoomedOutResampler(QgsBilinearRasterResampler())
+                    layer.resampleFilter().setZoomedInResampler(QgsBilinearRasterResampler())
+                    
                     self.loadedlayers[tilestoload[i]] = layer.id()
                     self.loadedtiles.add(tilestoload[i])
                     if extent is None:
