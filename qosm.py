@@ -207,7 +207,7 @@ class qosm:
         
     
     def addOSMLayer(self):
-        """Run method that performs all the real work"""
+        """Adds a new OSM layer and opens the properties dialog"""
         # add a new qosmtilelayer
         layer = self.pluginLayerType.createLayer()
         QgsMapLayerRegistry.instance().addMapLayer(layer)

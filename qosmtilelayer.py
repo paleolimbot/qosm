@@ -27,7 +27,7 @@ class QOSMTileLayerType(QgsPluginLayerType):
         self.add_callback = add_callback
 
     def createLayer(self):
-        layer = QOSMTileLayer("http://a.tile.openstreetmap.org/${z}/${x}/${y}.png", "OSM Plugin layer")
+        layer = QOSMTileLayer("osm", "OSM Plugin layer")
         self.add_callback(layer)
         return layer     
 

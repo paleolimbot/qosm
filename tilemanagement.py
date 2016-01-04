@@ -6,8 +6,11 @@ Created on Dec 30, 2015
 
 import os
 import hashlib
+import random
 
-BUILT_IN_TILETYPES = {"osm":"http://a.tile.openstreetmap.org/${z}/${x}/${y}.png"}
+BUILT_IN_TILETYPES = {"osm":["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                             "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                             "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"]}
 
 def tileurl(tiletype, tile, zoom, suffix=""):
     '''
@@ -16,7 +19,7 @@ def tileurl(tiletype, tile, zoom, suffix=""):
     urls for multiple tile servers?
     '''
     if tiletype in BUILT_IN_TILETYPES:
-        pattern = BUILT_IN_TILETYPES[tiletype]
+        pattern = random.sample(BUILT_IN_TILETYPES[tiletype], 1)[0]
     else:
         pattern = tiletype
     return pattern.replace("$", "").format(z=zoom, x=tile[0], y=tile[1])+suffix
