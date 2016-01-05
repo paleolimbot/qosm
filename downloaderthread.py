@@ -7,8 +7,11 @@ Created on Dec 30, 2015
 import os
 from urllib2 import urlopen, URLError
                 
+
+def _default_cancelled_callback():
+    return False
                 
-def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhandler=None):
+def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhandler=None, cancelledcallback=_default_cancelled_callback):
     
     if isinstance(outfiles, list):
         if not isinstance(urllist, list):
@@ -25,7 +28,10 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
     
     downloadedfiles = []
     
-    for i in range(len(urllist)): 
+    for i in range(len(urllist)):
+        if cancelledcallback():
+            return []
+        
         outfile = outfiles[i]
         url = urllist[i]
         if os.path.isdir(outfile):
@@ -53,6 +59,9 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
     if progresshandler:
         progresshandler(actualsize, totalsize)
     for i in range(len(urllist)):
+        if cancelledcallback():
+            return downloadedfiles
+        
         url = urllist[i]
         filename = filenames[i]
         #skip urls that failed the first step
@@ -69,7 +78,7 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
                 urlhandle = urlopen(url)
                 blocksize = 64*1024
                 
-                while True:
+                while not cancelledcallback():
                     block = urlhandle.read(blocksize)
                     actualsize += len(block)
                     if progresshandler:
@@ -80,6 +89,10 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
                 
                 fo.close()
                 urlhandle.close()
+                if cancelledcallback():
+                    #remove cancelled download file
+                    os.unlink(filename)
+                    return downloadedfiles
             else:
                 actualsize += os.path.getsize(filenames[i])
                 if progresshandler:

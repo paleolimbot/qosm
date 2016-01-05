@@ -54,6 +54,7 @@ class QOSMTileLayer(QgsPluginLayer):
         self.specifiedzoom = None #autozoom
         self.autorefresh = False
         self.refreshonce = False
+        self.forcedownload = False
         
         self.setMaximumScale(20000000) #1:20,000,000
         self.setScaleBasedVisibility(True)
@@ -80,21 +81,22 @@ class QOSMTileLayer(QgsPluginLayer):
             del self.loadedlayers[tile]
         self.loadedtiles.clear()
     
-    def refreshtiles(self, iface=None, rendererContext=None):
+    def refreshtiles(self, iface=None, rendererContext=None, forcedownload=False):
         if iface is None and rendererContext is None:
             #temporarily turn on self.autorefresh and trigger a repaint
             self.refreshonce = True
+            self.forcedownload = forcedownload
             self.triggerRepaint()
         elif iface is None:
             #passing iface means refreshing happens on the main thread for debug
             self.__refreshtiles(rendererContext.extent(), 
                             rendererContext.coordinateTransform().destCRS(),
-                            rendererContext.painter().device().width())
+                            rendererContext.painter().device().width(), forcedownload=forcedownload)
         elif rendererContext is None:
             #should this ever need to be called from a rendererContext
             self.__refreshtiles(iface.mapCanvas().extent(), 
                               iface.mapCanvas().mapRenderer().destinationCrs(), 
-                              iface.mapCanvas().width())
+                              iface.mapCanvas().width(), forcedownload=forcedownload)
         else:
             raise ValueError("Cannot specify both iface and rendererContext")
     
@@ -104,7 +106,7 @@ class QOSMTileLayer(QgsPluginLayer):
         if triggerrepaint:
             self.triggerRepaint()
     
-    def refreshtiles_get(self, canvasextent, canvascrs, widthpx, forcedownload=False):
+    def refreshtiles_get(self, canvasextent, canvascrs, widthpx, forcedownload=False, cancelledcallback=None, errorhandler=None):
         xform = QgsCoordinateTransform(canvascrs,
                                     QgsCoordinateReferenceSystem(4326))
         extll = xform.transform(canvasextent)
@@ -129,7 +131,11 @@ class QOSMTileLayer(QgsPluginLayer):
         tileurls = [tm.tileurl(self.tiletype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)
-        downloader.download(tileurls, tilefiles, overwrite=forcedownload)
+        if not cancelledcallback:
+            cancelledcallback = lambda: False
+        downloader.download(tileurls, tilefiles, overwrite=forcedownload, 
+                            errorhandler=errorhandler, 
+                            cancelledcallback=cancelledcallback)
         return tilestoclean, tilestoload, tilefiles
     
     def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles, extent):
@@ -197,14 +203,19 @@ class QOSMTileLayer(QgsPluginLayer):
         outputsize = QSize(rendererContext.painter().device().width(),
                         rendererContext.painter().device().height())
         
-        if self.autorefresh or self.refreshonce:
-            tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width())
+        refreshonce = self.refreshonce
+        forcedownload = self.forcedownload
+        self.refreshonce = False
+        self.forcedownload = False
+        
+        if self.autorefresh or refreshonce:
+            tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width(), 
+                                                                         forcedownload=forcedownload,
+                                                                         cancelledcallback=rendererContext.renderingStopped)
             #check if rendering stopped before applying changes to object
             if rendererContext.renderingStopped():
                 return True
             self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, extent)
-        
-        self.refreshonce = False
         
         if len(self.loadedlayers) > 0:
             img = self.createimage(extent, crs, outputsize) 
