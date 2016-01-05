@@ -35,21 +35,24 @@ class QOSMTileLayer(QgsPluginLayer):
     
     LAYER_TYPE = "QOSM_LAYER_TYPE"
     
-    def __init__(self, layertype, layerName):
+    def __init__(self, tiletype, layerName):
         QgsPluginLayer.__init__(self, QOSMTileLayer.LAYER_TYPE, layerName)
-        self.layertype = layertype
+        self.tiletype = tiletype
         self.loadedtiles = set()
         self.loadedlayers = {}
-        self.setValid(True)
         self.actualzoom = None
         self.specifiedzoom = None #autozoom
         self.autorefresh = False
+        
+        self.setMaximumScale(20000000) #1:20,000,000
+        self.setScaleBasedVisibility(True)
+        self.setValid(True)
     
     def zoom(self, widthpx, extll):
         if self.specifiedzoom is None:
             autozoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
-            return min(max((tm.minzoom(self.layertype), autozoom)),
-                       tm.maxzoom(self.layertype))
+            return min(max((tm.minzoom(self.tiletype), autozoom)),
+                       tm.maxzoom(self.tiletype))
         else:
             numtiles = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), self.specifiedzoom))
@@ -76,8 +79,9 @@ class QOSMTileLayer(QgsPluginLayer):
         xform = QgsCoordinateTransform(canvascrs,
                                     QgsCoordinateReferenceSystem(4326))
         extll = xform.transform(canvasextent)
+        
         zoom = self.zoom(widthpx, extll)
-        if zoom is None:
+        if zoom is None or self.tiletype is None:
             return list(self.loadedtiles), [], []
         
         tiles = osm.tiles(extll.xMinimum(), extll.xMaximum(), 
@@ -91,8 +95,8 @@ class QOSMTileLayer(QgsPluginLayer):
             tilestoload = list(set(tiles).difference(self.loadedtiles))
         
         #calculate file names and urls
-        tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", self.layertype, tile, zoom) for tile in tilestoload]
-        tileurls = [tm.tileurl(self.layertype, tile, zoom) for tile in tilestoload]
+        tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", self.tiletype, tile, zoom) for tile in tilestoload]
+        tileurls = [tm.tileurl(self.tiletype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)
         downloader.download(tileurls, tilefiles, overwrite=forcedownload)
@@ -119,7 +123,7 @@ class QOSMTileLayer(QgsPluginLayer):
                 if not os.path.exists(auxfile):
                     osm.writeauxfile(*tilestoload[i], filename=auxfile)
                 #create layer, add to self.loadedlayers, self.loadedtiles
-                layername = "qosm_%s_x%s_y%s_z%s" % ((self.layertype,) + tilestoload[i])
+                layername = "qosm_%s_x%s_y%s_z%s" % ((self.tiletype,) + tilestoload[i])
                 layer = QgsRasterLayer(tilefiles[i], layername)
                 if layer.isValid():
                     layer = reg.addMapLayer(layer, False)
