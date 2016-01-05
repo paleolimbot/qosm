@@ -19,8 +19,11 @@ def initialize_logging():
 
 def log(message):
     if _yesdoitlogme:
-        f = open(FILE, "a")
-        f.write(time.strftime("%c") + ": ")
-        f.write(message)
-        f.write("\n")
-        f.close()
+        try:
+            f = open(FILE, "a")
+            f.write(time.strftime("%c") + ": ")
+            f.write(message)
+            f.write("\n")
+            f.close()
+        except IOError:
+            pass #silently fail on logging error
