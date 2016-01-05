@@ -5,6 +5,7 @@ Created on Dec 30, 2015
 '''
 
 import os
+import traceback
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -49,7 +50,6 @@ class QOSMTileLayer(QgsPluginLayer):
     def __init__(self, tiletype, layerName):
         QgsPluginLayer.__init__(self, QOSMTileLayer.LAYER_TYPE, layerName)
         self.tiletype = tiletype
-        self.loadedtiles = set()
         self.loadedlayers = {}
         self.actualzoom = None
         self.specifiedzoom = None #autozoom
@@ -78,7 +78,6 @@ class QOSMTileLayer(QgsPluginLayer):
     def cleantiles(self):
         layerstoclean = list(self.loadedlayers.values())
         self.loadedlayers.clear()
-        self.loadedtiles.clear()
         QgsMapLayerRegistry.instance().removeMapLayers(layerstoclean)
     
     def refreshtiles(self, iface=None, rendererContext=None, forcedownload=False):
@@ -113,17 +112,18 @@ class QOSMTileLayer(QgsPluginLayer):
         
         zoom = self.zoom(widthpx, extll)
         if zoom is None or self.tiletype is None:
-            return list(self.loadedtiles), [], []
+            return list(self.loadedlayers.keys()), [], []
         
         tiles = osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), zoom)
         
         if forcedownload:
-            tilestoclean = list(self.loadedtiles)
+            tilestoclean = list(self.loadedlayers.keys())
             tilestoload = tiles
         else:
-            tilestoclean = self.loadedtiles.difference(set(tiles))
-            tilestoload = list(set(tiles).difference(self.loadedtiles))
+            loadedtiles = set(self.loadedlayers.keys())
+            tilestoclean = loadedtiles.difference(set(tiles))
+            tilestoload = list(set(tiles).difference(loadedtiles))
         
         #calculate file names and urls
         cachedir = qosmsettings.get(qosmsettings.CACHE_DIRECTORY)
@@ -143,7 +143,6 @@ class QOSMTileLayer(QgsPluginLayer):
         layerstoclean = [self.loadedlayers[tile] for tile in tilestoclean]
         for tile in tilestoclean:
             del self.loadedlayers[tile]
-            self.loadedtiles.remove(tile)
         QgsMapLayerRegistry.instance().removeMapLayers(layerstoclean)
         
         log("defining self.actualzoom")
@@ -160,7 +159,7 @@ class QOSMTileLayer(QgsPluginLayer):
                 auxfile = tm.auxfilename(tilefiles[i])
                 if not os.path.exists(auxfile):
                     osm.writeauxfile(*tilestoload[i], filename=auxfile)
-                #create layer, add to self.loadedlayers, self.loadedtiles
+                #create layer, add to self.loadedlayers
                 layername = "qosm_%s_x%s_y%s_z%s" % ((self.tiletype,) + tilestoload[i])
                 layer = QgsRasterLayer(tilefiles[i], layername)
                 if layer.isValid():
@@ -169,7 +168,6 @@ class QOSMTileLayer(QgsPluginLayer):
                     layer.resampleFilter().setZoomedInResampler(QgsBilinearRasterResampler())
                     
                     self.loadedlayers[tilestoload[i]] = layer.id()
-                    self.loadedtiles.add(tilestoload[i])
                 else:
                     log("ERROR invalid layer produced:" + layername)
                 
@@ -202,40 +200,46 @@ class QOSMTileLayer(QgsPluginLayer):
     
     def draw(self, rendererContext):
         log("drawing start")
-        extent = rendererContext.extent()
-        crs = rendererContext.coordinateTransform().destCRS()
-        outputsize = QSize(rendererContext.painter().device().width(),
-                        rendererContext.painter().device().height())
-        
-        refreshonce = self.refreshonce
-        forcedownload = self.forcedownload
-        self.refreshonce = False
-        self.forcedownload = False
-                
-        if self.autorefresh or refreshonce:
-            log("starting refresh")
-            tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width(), 
-                                                                         forcedownload=forcedownload,
-                                                                         cancelledcallback=rendererContext.renderingStopped)
-            log("refreshtiles_get returned")
-            #check if rendering stopped before applying changes to object
-            if rendererContext.renderingStopped():
-                log("rendering cancelled, returning True")
-                return True
-            log("applying tile changes")
-            self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, extent)
-        
-        if len(self.loadedlayers) > 0:
-            log("drawing loaded layers")
-            img = self.createimage(extent, crs, outputsize) 
-            rendererContext.painter().drawImage(0, 0, img)
-            log("drawing complete")
+        try:
+            extent = rendererContext.extent()
+            crs = rendererContext.coordinateTransform().destCRS()
+            outputsize = QSize(rendererContext.painter().device().width(),
+                            rendererContext.painter().device().height())
             
-        else:
-            log("no loaded layers, not drawing")
-        
-        log("drawing end")
-        return True
+            refreshonce = self.refreshonce
+            forcedownload = self.forcedownload
+            self.refreshonce = False
+            self.forcedownload = False
+                    
+            if self.autorefresh or refreshonce:
+                log("starting refresh")
+                tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width(), 
+                                                                             forcedownload=forcedownload,
+                                                                             cancelledcallback=rendererContext.renderingStopped)
+                log("refreshtiles_get returned")
+                #check if rendering stopped before applying changes to object
+                if rendererContext.renderingStopped():
+                    log("rendering cancelled, returning True")
+                    return True
+                log("applying tile changes")
+                self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, extent)
+            
+            if len(self.loadedlayers) > 0:
+                log("drawing loaded layers")
+                img = self.createimage(extent, crs, outputsize) 
+                rendererContext.painter().drawImage(0, 0, img)
+                log("drawing complete")
+                
+            else:
+                log("no loaded layers, not drawing")
+            
+            log("drawing end")
+            return True
+        except Exception as e:
+            log("error drawing: " + str(e))
+            log(traceback.format_exc())
+            return False
+            
         
         
         
