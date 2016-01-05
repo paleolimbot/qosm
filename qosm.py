@@ -25,7 +25,8 @@ from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
-from qosm_dialog import QosmDialog
+import qosmlogging
+
 import os.path
 
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
@@ -166,6 +167,10 @@ class qosm:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
+        #start logging
+        qosmlogging.initialize_logging()
+        qosmlogging.log("Initizlizing GUI")
+        
         icon_path = ':/plugins/qosm/icon.png'
         self.add_action(
             icon_path,
