@@ -25,7 +25,7 @@ from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
-from qosm_dialog import qosmDialog
+from qosm_dialog import QosmDialog
 import os.path
 
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
@@ -63,12 +63,12 @@ class qosm:
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = qosmDialog()
+        self.dlg_settings = None #TODO: add settings dialog
 
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&qosm')
-        # TODO: We are going to let the user set this up in a future iteration
+        
         self.toolbar = self.iface.addToolBar(u'qosm')
         self.toolbar.setObjectName(u'qosm')
         
@@ -207,10 +207,11 @@ class qosm:
         
     
     def addOSMLayer(self):
-        """Adds a new OSM layer and opens the properties dialog"""
+        """Adds a new OSM layer and opens the properties dialog to default settings"""
         # add a new qosmtilelayer
         layer = self.pluginLayerType.createLayer()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
+        self.pluginLayerType.showLayerProperties(layer, defaults=True)
     
     def onAddOSMLayer(self, layer):
         self.layers.append(layer)

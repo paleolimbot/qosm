@@ -20,7 +20,7 @@ BUILT_IN_TILETYPES = {"osm":["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png
                       "thunderforestoutdoors": ["http://a.tile.thunderforest.com/outdoors/${z}/${x}/${y}.png",
                                                 "http://b.tile.thunderforest.com/outdoors/${z}/${x}/${y}.png",
                                                 "http://c.tile.thunderforest.com/outdoors/${z}/${x}/${y}.png"],
-                      "hillshade":"http://c.tiles.wmflabs.org/hillshading/${z}/${x}/${y}.png",
+                      "hillshade":["http://c.tiles.wmflabs.org/hillshading/${z}/${x}/${y}.png",],
                       "stamenwatercolor":["http://a.tile.stamen.com/watercolor/${z}/${x}/${y}.jpg",
                                           "http://b.tile.stamen.com/watercolor/${z}/${x}/${y}.jpg",
                                           "http://c.tile.stamen.com/watercolor/${z}/${x}/${y}.jpg"],
@@ -36,6 +36,14 @@ BUILT_IN_MAXZOOM = {"osm":19,
                   "hillshade": 14, #can be less in some areas
                   "stamenwatercolor":15,
                   "mapquestsat":11} #only 8 in rosm?
+
+BUILT_IN_LABELS = {"osm":"Open Street Map",
+                  "stamenbw": "Stamen (Black & White)",
+                  "thunderforestlandscape": "Thunderforest Landscape",
+                  "thunderforestoutdoors": "Thunderforest Outdoors",
+                  "hillshade": "Hillshading", #can be less in some areas
+                  "stamenwatercolor":"Stamen (Watercolor)",
+                  "mapquestsat":"Mapquest Satellite"} #only 8 in rosm?
 
 def tileurl(tiletype, tile, zoom, suffix=""):
     '''

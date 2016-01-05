@@ -17,6 +17,7 @@ import openstreetmap as osm
 import downloaderthread as downloader
 import tilemanagement as tm
 import qosmsettings
+from qosm_dialog import QosmDialog
 
 
 class QOSMTileLayerType(QgsPluginLayerType):
@@ -25,11 +26,20 @@ class QOSMTileLayerType(QgsPluginLayerType):
         QgsPluginLayerType.__init__(self, QOSMTileLayer.LAYER_TYPE)
         self.plugin = plugin
         self.add_callback = add_callback
+        self.properties = QosmDialog(None)
 
     def createLayer(self):
         layer = QOSMTileLayer("osm", "OSM Plugin layer")
         self.add_callback(layer)
-        return layer     
+        return layer   
+    
+    def showLayerProperties(self, layer, defaults=False):
+        self.properties.set_layer(layer)
+        if defaults:
+            self.properties.reset_defaults()
+        self.properties.show()
+        return True
+          
 
 class QOSMTileLayer(QgsPluginLayer):
     
@@ -43,6 +53,7 @@ class QOSMTileLayer(QgsPluginLayer):
         self.actualzoom = None
         self.specifiedzoom = None #autozoom
         self.autorefresh = False
+        self.refreshonce = False
         
         self.setMaximumScale(20000000) #1:20,000,000
         self.setScaleBasedVisibility(True)
@@ -56,7 +67,7 @@ class QOSMTileLayer(QgsPluginLayer):
         else:
             numtiles = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), self.specifiedzoom))
-            if numtiles > qosmsettings.MAX_TILES_DEFAULT:
+            if numtiles > qosmsettings.get(qosmsettings.MAX_TILES):
                 return None
             else:
                 return self.specifiedzoom
@@ -69,7 +80,25 @@ class QOSMTileLayer(QgsPluginLayer):
             del self.loadedlayers[tile]
         self.loadedtiles.clear()
     
-    def refreshtiles(self, canvasextent, canvascrs, widthpx, forcedownload=False, triggerrepaint=True):
+    def refreshtiles(self, iface=None, rendererContext=None):
+        if iface is None and rendererContext is None:
+            #temporarily turn on self.autorefresh and trigger a repaint
+            self.refreshonce = True
+            self.triggerRepaint()
+        elif iface is None:
+            #passing iface means refreshing happens on the main thread for debug
+            self.__refreshtiles(rendererContext.extent(), 
+                            rendererContext.coordinateTransform().destCRS(),
+                            rendererContext.painter().device().width())
+        elif rendererContext is None:
+            #should this ever need to be called from a rendererContext
+            self.__refreshtiles(iface.mapCanvas().extent(), 
+                              iface.mapCanvas().mapRenderer().destinationCrs(), 
+                              iface.mapCanvas().width())
+        else:
+            raise ValueError("Cannot specify both iface and rendererContext")
+    
+    def __refreshtiles(self, canvasextent, canvascrs, widthpx, forcedownload=False, triggerrepaint=True):
         tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(canvasextent, canvascrs, widthpx, forcedownload)
         self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, canvasextent)
         if triggerrepaint:
@@ -95,7 +124,8 @@ class QOSMTileLayer(QgsPluginLayer):
             tilestoload = list(set(tiles).difference(self.loadedtiles))
         
         #calculate file names and urls
-        tilefiles = [tm.filename("/Users/dewey/giscache/rosm.cache/", self.tiletype, tile, zoom) for tile in tilestoload]
+        cachedir = qosmsettings.get(qosmsettings.CACHE_DIRECTORY)
+        tilefiles = [tm.filename(cachedir, self.tiletype, tile, zoom) for tile in tilestoload]
         tileurls = [tm.tileurl(self.tiletype, tile, zoom) for tile in tilestoload]
         
         #download (keep on same thread for now)
@@ -167,12 +197,14 @@ class QOSMTileLayer(QgsPluginLayer):
         outputsize = QSize(rendererContext.painter().device().width(),
                         rendererContext.painter().device().height())
         
-        if self.autorefresh:
+        if self.autorefresh or self.refreshonce:
             tilestoclean, tilestoload, tilefiles = self.refreshtiles_get(extent, crs, outputsize.width())
             #check if rendering stopped before applying changes to object
             if rendererContext.renderingStopped():
                 return True
             self.refreshtiles_apply(tilestoclean, tilestoload, tilefiles, extent)
+        
+        self.refreshonce = False
         
         if len(self.loadedlayers) > 0:
             img = self.createimage(extent, crs, outputsize) 
