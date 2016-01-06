@@ -171,13 +171,23 @@ class qosm:
         qosmlogging.initialize_logging()
         qosmlogging.log("Initizlizing GUI")
         
-        icon_path = ':/plugins/qosm/icon.png'
         self.add_action(
-            icon_path,
+            ':/plugins/qosm/icon_newlayer.png',
             text=self.tr(u'Add OSM tile layer'),
             callback=self.addOSMLayer,
             parent=self.iface.mainWindow())
         
+        self.add_action(
+            ':/plugins/qosm/icon_refresh.png',
+            text=self.tr(u'Refresh OSM tile layers'),
+            callback=self.refreshOSMLayers,
+            parent=self.iface.mainWindow())
+        
+        self.add_action(
+            ':/plugins/qosm/icon_settings.png',
+            text=self.tr(u'QOSM Settings'),
+            callback=self.qosmSettings,
+            parent=self.iface.mainWindow())
         
         self.pluginLayerType = QOSMTileLayerType(self, self.onAddOSMLayer)
         QgsPluginLayerRegistry.instance().addPluginLayerType(self.pluginLayerType)
@@ -217,6 +227,15 @@ class qosm:
         layer = self.pluginLayerType.createLayer()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         self.pluginLayerType.showLayerProperties(layer, defaults=True)
+    
+    def refreshOSMLayers(self):
+        #manual refresh OSM Layers
+        for layer in self.layers:
+            layer.refreshtiles()
+    
+    def qosmSettings(self):
+        #show settings window
+        pass
     
     def onAddOSMLayer(self, layer):
         self.layers.append(layer)

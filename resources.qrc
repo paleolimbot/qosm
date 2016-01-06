@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/plugins/qosm" >
-        <file>icon.png</file>
+        <file>icon_newlayer.png</file>
+        <file>icon_refresh.png</file>
+        <file>icon_settings.png</file>
     </qresource>
 </RCC>
