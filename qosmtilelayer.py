@@ -39,6 +39,7 @@ class QOSMTileLayerType(QgsPluginLayerType):
         self.properties.set_layer(layer)
         if defaults:
             self.properties.reset_defaults()
+            self.properties.deleteoncancel = True
         self.properties.show()
         return True
           

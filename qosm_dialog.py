@@ -24,17 +24,21 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from qgis.core import QgsMapLayerRegistry
+
 import tilemanagement as tm
 import qosmsettings
 
 from ui_qosm_dialog_base import Ui_qosmDialogBase
 
 class QosmDialog(QDialog, Ui_qosmDialogBase):
-    def __init__(self, parent=None):
+    
+    def __init__(self, parent=None, deleteoncancel=False):
         """Constructor."""
         super(QosmDialog, self).__init__(parent)
         self.setupUi(self)
         self.refresh_types()
+        self.deleteoncancel = deleteoncancel
     
     def on_addCustomType_released(self):
         #validate url
@@ -132,7 +136,14 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             self.layer.cleantiles()
         
         self.layer.triggerRepaint()
+        self.deleteoncancel = False
         QDialog.accept(self)
     
+    def reject(self):
+        if self.deleteoncancel:
+            layerid = self.layer.id()
+            QgsMapLayerRegistry.instance().removeMapLayer(layerid)
+        self.deleteoncancel = False
+        QDialog.reject(self)
         
             
