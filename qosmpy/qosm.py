@@ -20,18 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, pyqtSlot
-from PyQt4.QtGui import QAction, QIcon
-# Initialize Qt resources from file resources.py
-import resources
-# Import the code for the dialog
-import qosmlogging
-
 import os.path
 
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, pyqtSlot
+from PyQt4.QtGui import QAction, QIcon
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
 
+import resources
+import qosmlogging
 from qosmtilelayer import QOSMTileLayer, QOSMTileLayerType
+
 
 
 class qosm:

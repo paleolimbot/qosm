@@ -31,5 +31,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    from .qosm import qosm
+    from qosmpy.qosm import qosm
     return qosm(iface)
