@@ -44,16 +44,9 @@ SOURCES = \
 
 PLUGINNAME = qosm
 
-PY_FILES = \
-	__init__.py \
-	qosmmpy/qosm.py qosmpy/qosm_dialog.py qosmpy/downloaderthread.py \
-	qosmpy/openstreetmap.py qosmpy/qosmlogging.py qosmpy/qosmsettings.py \
-	qosmpy/qosmtilelayer.py qosmpy/tilemanagement.py
-
-UI_FILES = qosm_dialog_base.ui
-
-EXTRAS = metadata.txt resources/icon_newlayer.png \
-    resources/icon_refresh.png resources/icon_settings.pny
+PLUGINFILES = qosm.py __init__.py metadata.txt
+PYMODULE = qosmpy
+RES_DIR = resources
 
 COMPILED_RESOURCE_FILES = qosmpy/resources_rc.py
 COMPILED_UI_FILES = qosmpy/ui_qosm_dialog_base.py
@@ -93,12 +86,11 @@ deploy: compile doc transcompile
 	# the Python plugin directory is located at:
 	# $HOME/$(QGISDIR)/python/plugins
 	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(PLUGINFILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/
+	cp -vfr $(PYMODULE) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/$(PYMODULE)
+	cp -vfr $(RES_DIR) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/$(RES_DIR)
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
+	mkdir $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/log
 
 # The dclean target removes compiled python files from plugin directory
 # also deletes any .git entry
