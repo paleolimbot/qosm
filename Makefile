@@ -87,8 +87,7 @@ deploy: compile doc transcompile
 	# $HOME/$(QGISDIR)/python/plugins
 	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(PLUGINFILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/
-	cp -vfr $(PYMODULE) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/$(PYMODULE)
-	cp -vfr $(RES_DIR) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/$(RES_DIR)
+	cp -vfr $(PYMODULE) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	mkdir $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/log
 

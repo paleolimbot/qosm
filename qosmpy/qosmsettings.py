@@ -16,7 +16,7 @@ _ALLKEYS = (MAX_TILES, CACHE_DIRECTORY)
 
 _DEFAULTS = {MAX_TILES: 70,
              CACHE_DIRECTORY: os.path.join(os.path.dirname(__file__),
-                                            "qosm.cache")}
+                                            "../qosm.cache")}
 
 _SETTINGS_PREFIX = "/qgis/qosm_plugin/"
 
