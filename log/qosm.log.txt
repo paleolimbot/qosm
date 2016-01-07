@@ -1,0 +1,17 @@
+Thu Jan  7 13:28:00 2016: Logging started
+Thu Jan  7 13:28:00 2016: Initizlizing GUI
+Thu Jan  7 13:28:02 2016: drawing start
+Thu Jan  7 13:28:02 2016: no loaded layers, not drawing
+Thu Jan  7 13:28:02 2016: drawing end
+Thu Jan  7 13:28:03 2016: drawing start
+Thu Jan  7 13:28:03 2016: starting refresh
+Thu Jan  7 13:28:03 2016: refreshtiles_get returned
+Thu Jan  7 13:28:03 2016: applying tile changes
+Thu Jan  7 13:28:03 2016: defining self.actualzoom
+Thu Jan  7 13:28:03 2016: loading tiles
+Thu Jan  7 13:28:04 2016: setting extent: 557839.4824369363486767,5033470.1071896329522133 : 608784.6592367105185986,5068413.9124113954603672
+Thu Jan  7 13:28:04 2016: drawing loaded layers
+Thu Jan  7 13:28:04 2016: about to render
+Thu Jan  7 13:28:04 2016: just rendered
+Thu Jan  7 13:28:04 2016: drawing complete
+Thu Jan  7 13:28:04 2016: drawing end

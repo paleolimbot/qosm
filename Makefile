@@ -38,21 +38,27 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	qosm.py qosm_dialog.py
+	qosm.py qosm_dialog.py qosmpy/downloaderthread.py \
+    qosmpy/openstreetmap.py qosmpy/qosmlogging.py qosmpy/qosmsettings.py \
+    qosmpy/qosmtilelayer.py qosmpy/tilemanagement.py
 
 PLUGINNAME = qosm
 
 PY_FILES = \
 	__init__.py \
-	qosm.py qosm_dialog.py
+	qosmmpy/qosm.py qosmpy/qosm_dialog.py qosmpy/downloaderthread.py \
+	qosmpy/openstreetmap.py qosmpy/qosmlogging.py qosmpy/qosmsettings.py \
+	qosmpy/qosmtilelayer.py qosmpy/tilemanagement.py
 
 UI_FILES = qosm_dialog_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt resources/icon_newlayer.png \
+    resources/icon_refresh.png resources/icon_settings.pny
 
-COMPILED_RESOURCE_FILES = resources.py
+COMPILED_RESOURCE_FILES = qosmpy/resources_rc.py
+COMPILED_UI_FILES = qosmpy/ui_qosm_dialog_base.py
 
-PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
+PEP8EXCLUDE=pydev,qosmpy/resources.py,conf.py,third_party,ui,qosmpy/ui_qosm_dialog_base.py
 
 
 #################################################
@@ -63,37 +69,20 @@ HELP = help/build/html
 
 PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
-RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
-
 QGISDIR=.qgis2
 
 default: compile
 
-compile: $(COMPILED_RESOURCE_FILES)
+compile: $(COMPILED_RESOURCE_FILES) $(COMPILED_UI_FILES)
 
-%.py : %.qrc $(RESOURCES_SRC)
-	pyrcc4 -o $*.py  $<
+qosmpy/%_rc.py : resources/%.qrc
+	pyrcc4 -o $@  $<
+
+qosmpy/ui_%.py : resources/%.ui
+	pyuic4 -o $@ $<
 
 %.qm : %.ts
 	$(LRELEASE) $<
-
-test: compile transcompile
-	@echo
-	@echo "----------------------"
-	@echo "Regression Test Suite"
-	@echo "----------------------"
-
-	@# Preceding dash means that make will continue in case of errors
-	@-export PYTHONPATH=`pwd`:$(PYTHONPATH); \
-		export QGIS_DEBUG=0; \
-		export QGIS_LOG_FILE=/dev/null; \
-		nosetests -v --with-id --with-coverage --cover-package=. \
-		3>&1 1>&2 2>&3 3>&- || true
-	@echo "----------------------"
-	@echo "If you get a 'no module named qgis.core error, try sourcing"
-	@echo "the helper script we have provided first then run make test."
-	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
-	@echo "----------------------"
 
 deploy: compile doc transcompile
 	@echo

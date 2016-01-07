@@ -26,7 +26,7 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, pyq
 from PyQt4.QtGui import QAction, QIcon
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
 
-import resources
+import resources_rc
 import qosmlogging
 from qosmtilelayer import QOSMTileLayer, QOSMTileLayerType
 

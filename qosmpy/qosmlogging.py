@@ -7,7 +7,7 @@ Created on Jan 5, 2016
 import os
 import time
 
-FILE = os.path.join(os.path.dirname(__file__), "qosm.log.txt")
+FILE = os.path.join(os.path.dirname(__file__), "../log/qosm.log.txt")
 _yesdoitlogme = False
 
 def initialize_logging():
