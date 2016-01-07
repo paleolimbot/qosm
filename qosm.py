@@ -226,7 +226,7 @@ class qosm:
         # add a new qosmtilelayer
         layer = self.pluginLayerType.createLayer()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
-        self.pluginLayerType.showLayerProperties(layer, defaults=True)
+        self.pluginLayerType.showLayerProperties(layer, newlayer=True)
     
     def refreshOSMLayers(self):
         #manual refresh OSM Layers

@@ -33,12 +33,12 @@ from ui_qosm_dialog_base import Ui_qosmDialogBase
 
 class QosmDialog(QDialog, Ui_qosmDialogBase):
     
-    def __init__(self, parent=None, deleteoncancel=False):
+    def __init__(self, parent=None):
         """Constructor."""
         super(QosmDialog, self).__init__(parent)
         self.setupUi(self)
         self.refresh_types()
-        self.deleteoncancel = deleteoncancel
+        self.newlayer = False
     
     def on_addCustomType_released(self):
         #validate url
@@ -124,6 +124,17 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             self.autorefresh.setChecked(layer.autorefresh)
             self.set_selected_type(layer.tiletype)
             self.customUrl.setText("")
+    
+    def get_label(self, tiletype):
+        if tiletype in tm.BUILT_IN_LABELS:
+            return tm.BUILT_IN_LABELS[tiletype]
+        else:
+            customtypes = qosmsettings.get(qosmsettings.CUSTOM_TILE_TYPES)
+            if tiletype in customtypes:
+                return customtypes[tiletype]
+            else:
+                return str(tiletype) # in case None is passed
+        
         
     def accept(self):
         #apply values to layer object
@@ -131,19 +142,27 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             self.layer.autorefresh = self.autorefresh.isChecked()
             
         tiletypevalue = self.maptypeSpinner.itemData(self.maptypeSpinner.currentIndex())
+        if self.newlayer:
+            self.layer.setLayerName("QOSM layer - " + self.get_label(tiletypevalue))
         if tiletypevalue != self.layer.tiletype:
+            #rename any part of the layer that was named according to the tiletype
+            layername = unicode(self.layer.name())
+            layername = layername.replace(self.get_label(self.layer.tiletype), 
+                       self.get_label(tiletypevalue))
+            self.layer.setLayerName(layername)
+            #set new tiletype and clean old tiles
             self.layer.tiletype = tiletypevalue
             self.layer.cleantiles()
         
         self.layer.triggerRepaint()
-        self.deleteoncancel = False
+        self.newlayer = False
         QDialog.accept(self)
     
     def reject(self):
-        if self.deleteoncancel:
+        if self.newlayer:
             layerid = self.layer.id()
             QgsMapLayerRegistry.instance().removeMapLayer(layerid)
-        self.deleteoncancel = False
+        self.newlayer = False
         QDialog.reject(self)
         
             

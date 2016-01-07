@@ -35,11 +35,11 @@ class QOSMTileLayerType(QgsPluginLayerType):
         self.add_callback(layer)
         return layer   
     
-    def showLayerProperties(self, layer, defaults=False):
+    def showLayerProperties(self, layer, newlayer=False):
         self.properties.set_layer(layer)
-        if defaults:
+        if newlayer:
             self.properties.reset_defaults()
-            self.properties.deleteoncancel = True
+            self.properties.newlayer = True
         self.properties.show()
         return True
           
