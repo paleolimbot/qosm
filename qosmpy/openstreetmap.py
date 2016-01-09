@@ -13,7 +13,7 @@ def nwcorner(tilex, tiley, zoom):
     lat_deg = math.degrees(lat_rad)
     return (lon_deg, lat_deg)
 
-def params(tilex, tiley, zoom):
+def params(tilex, tiley, zoom, imagesize=(256, 256)):
     topleft= nwcorner(tilex, tiley, zoom)
     bottomright = nwcorner(tilex+1, tiley+1, zoom)
     ext = __PROJECTOR.transform(QgsRectangle(QgsPoint(*topleft), 
@@ -29,8 +29,8 @@ def params(tilex, tiley, zoom):
             "ymax":ext.yMaximum(),
             "height":ext.height(),
             "width":ext.width(),
-            "perpixelx":(ext.width()/256.0),
-            "perpixely":(-ext.height()/256.0)} #negative built in
+            "perpixelx":(ext.width()/float(imagesize[0])),
+            "perpixely":(-ext.height()/float(imagesize[1]))} #negative built in
 
 def tile(lon, lat, zoom):
         maxTile = 2 ** zoom - 1
@@ -62,8 +62,8 @@ def autozoom(pxPerDegreeWidth):
     zoom = math.log((360.0 / 256.0) * pxPerDegreeWidth) / math.log(2.0)
     return int(round(zoom))
     
-def writeauxfile(tilex, tiley, zoom, filename):
-    pars = params(tilex, tiley, zoom)
+def writeauxfile(tilex, tiley, zoom, filename, imagesize=(256, 256)):
+    pars = params(tilex, tiley, zoom, imagesize)
     fout = open(filename, "w")
     fout.write('<PAMDataset>\n  <SRS>PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],AUTHORITY["EPSG","3857"]]</SRS>\n')
     fout.write('  <GeoTransform>{xmin}, {perpixelx}, 0.0, {ymax}, 0.0, {perpixely}</GeoTransform>\n'.format(**pars))

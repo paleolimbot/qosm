@@ -159,7 +159,7 @@ class QOSMTileLayer(QgsPluginLayer):
             if os.path.exists(tilefiles[i]):
                 auxfile = tm.auxfilename(tilefiles[i])
                 if not os.path.exists(auxfile):
-                    osm.writeauxfile(*tilestoload[i], filename=auxfile)
+                    osm.writeauxfile(*tilestoload[i], filename=auxfile, imagesize=tm.tilesize(self.tiletype))
                 #create layer, add to self.loadedlayers
                 layername = "qosm_%s_x%s_y%s_z%s" % ((self.tiletype,) + tilestoload[i])
                 layer = QgsRasterLayer(tilefiles[i], layername)
