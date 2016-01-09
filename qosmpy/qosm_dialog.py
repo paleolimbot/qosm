@@ -30,15 +30,25 @@ import tilemanagement as tm
 import qosmsettings
 
 from ui_qosm_dialog_base import Ui_qosmDialogBase
+from dialog_cachetiles import DialogCachetiles
 
 class QosmDialog(QDialog, Ui_qosmDialogBase):
     
-    def __init__(self, parent=None):
+    def __init__(self, iface):
         """Constructor."""
-        super(QosmDialog, self).__init__(parent)
+        super(QosmDialog, self).__init__(None)
         self.setupUi(self)
         self.refresh_types()
         self.newlayer = False
+        
+        self.cachedialog = DialogCachetiles(self, iface)
+    
+    def on_downloadTileCache_released(self):
+        current = self.maptypeSpinner.itemData(self.maptypeSpinner.currentIndex())
+        self.cachedialog.set_tiletype(current)
+        self.cachedialog.set_extent()
+        self.cachedialog.autoset_minmax()
+        self.cachedialog.show()
     
     def on_addCustomType_released(self):
         #validate url

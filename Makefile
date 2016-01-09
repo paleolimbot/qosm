@@ -49,7 +49,7 @@ PYMODULE = qosmpy
 RES_DIR = resources
 
 COMPILED_RESOURCE_FILES = qosmpy/resources_rc.py
-COMPILED_UI_FILES = qosmpy/ui_qosm_dialog_base.py
+COMPILED_UI_FILES = qosmpy/ui_qosm_dialog_base.py qosmpy/ui_qosm_cachetiles_dialog.py
 
 PEP8EXCLUDE=pydev,qosmpy/resources.py,conf.py,third_party,ui,qosmpy/ui_qosm_dialog_base.py
 

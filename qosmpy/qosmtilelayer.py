@@ -28,7 +28,7 @@ class QOSMTileLayerType(QgsPluginLayerType):
         QgsPluginLayerType.__init__(self, QOSMTileLayer.LAYER_TYPE)
         self.plugin = plugin
         self.add_callback = add_callback
-        self.properties = QosmDialog(None)
+        self.properties = QosmDialog(self.plugin.iface)
 
     def createLayer(self):
         layer = QOSMTileLayer("osm", "OSM Plugin layer")

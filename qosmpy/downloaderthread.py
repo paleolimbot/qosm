@@ -5,7 +5,9 @@ Created on Dec 30, 2015
 '''
 
 import os
-from urllib2 import urlopen, URLError
+from urllib2 import urlopen
+
+from qosmlogging import log
                 
 
 def _default_cancelled_callback():
@@ -22,54 +24,25 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
     else:
         outfiles = [outfiles, ] * len(urllist)
     
-    filenames = []
-    totalsize = 0
-    badurls = []
-    
     downloadedfiles = []
     
-    for i in range(len(urllist)):
-        if cancelledcallback():
-            return []
-        
-        outfile = outfiles[i]
-        url = urllist[i]
-        if os.path.isdir(outfile):
-            filenames.append(os.path.join(outfile, url.split("/")[-1]))
-        else:
-            filenames.append(outfile)
-        try:
-            if not os.path.isfile(filenames[i]) or overwrite:
-                urlhandle = urlopen(url)
-                totalsize += int(urlhandle.info()["Content-Length"])
-                urlhandle.close()
-            else:
-                totalsize += os.path.getsize(filenames[i])
-        except URLError as e:
-            badurls.append(url)
-            if errorhandler:
-                errorhandler(str(e))
-        finally:
-            try:
-                urlhandle.close()
-            except Exception:
-                pass
-    
-    actualsize = 0
     if progresshandler:
-        progresshandler(actualsize, totalsize)
+        progresshandler(0, len(urllist))
     for i in range(len(urllist)):
         if cancelledcallback():
             return downloadedfiles
         
         url = urllist[i]
-        filename = filenames[i]
-        #skip urls that failed the first step
-        if url in badurls:
-            downloadedfiles.append(None)
-            continue
+        outfile = outfiles[i]
+        
+        if os.path.isdir(outfile):
+            filename = os.path.join(outfile, url.split("/")[-1])
+        else:
+            filename = outfile
+
         try:
             if not os.path.isfile(filename) or overwrite:
+                log("Downloading " + url)
                 #ensure directory is already created
                 directory = os.path.dirname(filename)
                 if not os.path.exists(directory):
@@ -80,25 +53,24 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
                 
                 while not cancelledcallback():
                     block = urlhandle.read(blocksize)
-                    actualsize += len(block)
-                    if progresshandler:
-                        progresshandler(actualsize, totalsize)
                     if len(block) == 0:
                         break
                     fo.write(block)
                 
                 fo.close()
                 urlhandle.close()
-                if cancelledcallback():
-                    #remove cancelled download file
-                    os.unlink(filename)
-                    return downloadedfiles
+                downloadedfiles.append(filename)
+                log("Downloaded to " + filename)
             else:
-                actualsize += os.path.getsize(filenames[i])
-                if progresshandler:
-                        progresshandler(actualsize, totalsize)
+                log("Skipping existing file: " + filename)
+            if cancelledcallback():
+                #remove cancelled download file
+                os.unlink(filename)
+                return downloadedfiles
             
-            downloadedfiles.append(filename)
+            if progresshandler:
+                progresshandler(i+1, len(urllist))
+            
         except IOError as e:
             if errorhandler:
                 errorhandler(str(e))
