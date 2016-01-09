@@ -23,6 +23,7 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
             if list is passed to download")
     else:
         outfiles = [outfiles, ] * len(urllist)
+    log("download() starting with %s urls and %s outfiles" % (len(urllist), len(outfiles)))
     
     downloadedfiles = []
     
@@ -74,6 +75,8 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
         except IOError as e:
             if errorhandler:
                 errorhandler(str(e))
+            fo.close()
+            os.unlink(filename)
         finally:
             try:
                 fo.close()

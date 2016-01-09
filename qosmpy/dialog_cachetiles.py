@@ -145,7 +145,7 @@ class DownloaderThread(QThread):
             if os.path.exists(tilefiles[i]):
                 indicies.append(i)
         log("removing %s tiles that already exist" % len(indicies))
-        for i in indicies:
+        for i in reversed(indicies):
             tilefiles.pop(i)
             tileurls.pop(i)
         
