@@ -124,6 +124,23 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             self.autorefresh.setChecked(layer.autorefresh)
             self.set_selected_type(layer.tiletype)
             self.customUrl.setText("")
+            
+            if not self.layer.specifiedzoom is None:
+                self.fixedZoom.setValue(self.layer.specifiedzoom)
+                self.hasFixedZoom.setChecked(True)
+            else:
+                if self.layer.actualzoom is None:
+                    self.fixedZoom.setValue(tm.maxzoom(self.layer.tiletype))
+                else:
+                    self.fixedZoom.setValue(self.layer.actualzoom)
+                    
+            if not self.layer.maxzoom is None:
+                self.maxZoom.setValue(self.layer.maxzoom)
+                self.hasMaxZoom.setChecked(True)
+            else:
+                self.maxZoom.setValue(tm.maxzoom(self.layer.tiletype))
+                
+            
     
     def get_label(self, tiletype):
         if tiletype in tm.BUILT_IN_LABELS:
@@ -153,6 +170,15 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             #set new tiletype and clean old tiles
             self.layer.tiletype = tiletypevalue
             self.layer.cleantiles()
+        if self.hasFixedZoom.isChecked():
+            self.layer.specifiedzoom = self.fixedZoom.value()
+        else:
+            self.layer.specifiedzoom = None
+
+        if self.hasMaxZoom.isChecked():
+            self.layer.maxzoom = self.maxZoom.value()
+        else:
+            self.layer.maxzoom = None
         
         self.layer.triggerRepaint()
         self.newlayer = False

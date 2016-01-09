@@ -54,6 +54,7 @@ class QOSMTileLayer(QgsPluginLayer):
         self.loadedlayers = {}
         self.actualzoom = None
         self.specifiedzoom = None #autozoom
+        self.maxzoom = None
         self.autorefresh = False
         self.refreshonce = False
         self.forcedownload = False
@@ -64,9 +65,10 @@ class QOSMTileLayer(QgsPluginLayer):
     
     def zoom(self, widthpx, extll):
         if self.specifiedzoom is None:
+            maxzoom = tm.maxzoom(self.tiletype) if self.maxzoom is None else self.maxzoom
             autozoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
             return min(max((tm.minzoom(self.tiletype), autozoom)),
-                       tm.maxzoom(self.tiletype))
+                       maxzoom)
         else:
             numtiles = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), self.specifiedzoom))

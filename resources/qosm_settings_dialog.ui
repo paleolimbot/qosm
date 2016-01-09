@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>491</width>
-    <height>246</height>
+    <width>495</width>
+    <height>180</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -62,66 +62,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="downloadTileCache">
-       <property name="text">
-        <string>Download Tile Cache...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="hasMaxZoom">
-         <property name="text">
-          <string>Max Zoom</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="maxZoom">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="minimum">
-          <number>2</number>
-         </property>
-         <property name="maximum">
-          <number>22</number>
-         </property>
-         <property name="value">
-          <number>19</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QCheckBox" name="hasFixedZoom">
-         <property name="text">
-          <string>Fixed Zoom</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="fixedZoom">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>22</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -142,8 +83,8 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>17</width>
-       <height>5</height>
+       <width>20</width>
+       <height>1</height>
       </size>
      </property>
     </spacer>
@@ -169,8 +110,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>40</x>
-     <y>330</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
      <x>20</x>
@@ -185,44 +126,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>40</x>
-     <y>330</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>hasFixedZoom</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>fixedZoom</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>164</x>
-     <y>159</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>161</x>
-     <y>186</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>hasMaxZoom</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>maxZoom</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>64</x>
-     <y>159</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>186</y>
     </hint>
    </hints>
   </connection>
