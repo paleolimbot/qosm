@@ -89,7 +89,6 @@ deploy: compile doc transcompile
 	cp -vf $(PLUGINFILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/
 	cp -vfr $(PYMODULE) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
-	mkdir $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/log
 
 # The dclean target removes compiled python files from plugin directory
 # also deletes any .git entry
@@ -99,7 +98,9 @@ dclean:
 	@echo "Removing any compiled python files."
 	@echo "-----------------------------------"
 	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
+	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.log.txt" -delete
 	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
+	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "qosm.cache" -prune -exec rm -Rf {} \;
 
 
 derase:
