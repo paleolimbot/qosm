@@ -71,10 +71,7 @@ def tiletypekey(any_tile_type):
         return m.hexdigest()
 
 def tilesize(tiletype):
-    if tiletype == "hillshade":
-        return (257, 257)
-    else:
-        return (256, 256)
+    return (256, 256)
 
 def filename(cachefolder, tiletype, tile, zoom):
     return os.path.join(cachefolder, tiletypekey(tiletype), 

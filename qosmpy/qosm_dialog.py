@@ -107,7 +107,6 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             
     
     def set_selected_type(self, setselection):
-        #may wish to check to see if selected type exists and add it
         if not setselection is None:
             index = self.maptypeSpinner.findData(setselection)
             if index != -1:
