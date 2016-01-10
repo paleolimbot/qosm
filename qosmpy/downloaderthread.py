@@ -42,6 +42,8 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
             filename = outfile
 
         try:
+            if progresshandler:
+                progresshandler(i, len(urllist))
             if not os.path.isfile(filename) or overwrite:
                 log("Downloading " + url)
                 #ensure directory is already created
@@ -69,10 +71,10 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
                 os.unlink(filename)
                 return downloadedfiles
             
-            if progresshandler:
-                progresshandler(i+1, len(urllist))
+            
             
         except IOError as e:
+            log("Error downloading: %s" % e)
             if errorhandler:
                 errorhandler(str(e))
             fo.close()
@@ -83,4 +85,6 @@ def download(urllist, outfiles, overwrite=False, progresshandler=None, errorhand
                 urlhandle.close()
             except Exception:
                 pass
+    if progresshandler:
+        progresshandler(len(urllist), len(urllist))
     return downloadedfiles
