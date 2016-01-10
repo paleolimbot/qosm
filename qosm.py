@@ -29,6 +29,7 @@ from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
 import qosmpy.resources_rc
 import qosmpy.qosmlogging as qosmlogging
 from qosmpy.qosmtilelayer import QOSMTileLayer, QOSMTileLayerType
+from qosmpy.dialog_settings import DialogSettings
 
 
 
@@ -169,6 +170,8 @@ class qosm:
         qosmlogging.initialize_logging()
         qosmlogging.log("Initizlizing GUI")
         
+        self.settingsdialog = DialogSettings(None)
+        
         self.add_action(
             ':/plugins/qosm/icon_newlayer.png',
             text=self.tr(u'Add OSM tile layer'),
@@ -232,8 +235,8 @@ class qosm:
             layer.refreshtiles()
     
     def qosmSettings(self):
-        #show settings window
-        pass
+        self.settingsdialog.sync_dialog()
+        self.settingsdialog.show()
     
     def onAddOSMLayer(self, layer):
         self.layers.append(layer)

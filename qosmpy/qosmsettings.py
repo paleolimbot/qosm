@@ -11,12 +11,14 @@ from PyQt4.QtCore import QSettings
 MAX_TILES = "max_tiles"
 CACHE_DIRECTORY = "cache_directory"
 CUSTOM_TILE_TYPES = "custom_tile_types"
+AUTODOWNLOAD = "autodownload"
 
-_ALLKEYS = (MAX_TILES, CACHE_DIRECTORY)
+_ALLKEYS = (MAX_TILES, CACHE_DIRECTORY, AUTODOWNLOAD)
 
-_DEFAULTS = {MAX_TILES: 70,
-             CACHE_DIRECTORY: os.path.join(os.path.dirname(__file__),
-                                            "../qosm.cache")}
+_DEFAULTS = {MAX_TILES: 100,
+             CACHE_DIRECTORY: os.path.normpath(os.path.join(os.path.dirname(__file__),
+                                            "../qosm.cache")),
+             AUTODOWNLOAD: True}
 
 _SETTINGS_PREFIX = "/qgis/qosm_plugin/"
 

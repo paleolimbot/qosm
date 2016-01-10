@@ -8,11 +8,16 @@ import os
 import time
 
 FILE = os.path.join(os.path.dirname(__file__), "../qosm.log.txt")
+PREVIOUS_FILE = os.path.join(os.path.dirname(__file__), "../qosm.previous.log.txt")
 _yesdoitlogme = False
 
 def initialize_logging():
     global _yesdoitlogme
     _yesdoitlogme = True
+    if os.path.isfile(PREVIOUS_FILE):
+        os.unlink(PREVIOUS_FILE)
+    if os.path.isfile(FILE):
+        os.rename(FILE, PREVIOUS_FILE)
     f = open(FILE, "w")
     f.write(time.strftime("%c") + ": Logging started\n")
     f.close()
