@@ -136,15 +136,17 @@ class QOSMTileLayer(QgsPluginLayer):
         tilefiles = [tm.filename(cachedir, self.tiletype, tile, zoom) for tile in tilestoload]
         tileurls = [tm.tileurl(self.tiletype, tile, zoom) for tile in tilestoload]
         
-        #download (keep on same thread for now)
-        if not cancelledcallback:
-            cancelledcallback = lambda: False
-        dlerrors = []
-        downloader.download(tileurls, tilefiles, overwrite=forcedownload, 
-                            errorhandler=dlerrors.append, 
-                            cancelledcallback=cancelledcallback)
-        if dlerrors:
-            self.rendererrors += 1
+        if qosmsettings.get(qosmsettings.AUTODOWNLOAD):
+            #download (keep on same thread for now)
+            if not cancelledcallback:
+                cancelledcallback = lambda: False
+            dlerrors = []
+            downloader.download(tileurls, tilefiles, overwrite=forcedownload, 
+                                errorhandler=dlerrors.append, 
+                                cancelledcallback=cancelledcallback)
+            if dlerrors:
+                self.rendererrors += 1
+        
         return tilestoclean, tilestoload, tilefiles
     
     def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles, extent):
