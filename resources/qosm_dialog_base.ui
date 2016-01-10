@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>491</width>
-    <height>246</height>
+    <height>294</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -147,6 +147,16 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusText">
+     <property name="text">
+      <string>Loaded %s of %s tiles at zoom level %s (automatic zoom would be %s).</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="button_box">

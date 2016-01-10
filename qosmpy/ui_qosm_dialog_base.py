@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_qosmDialogBase(object):
     def setupUi(self, qosmDialogBase):
         qosmDialogBase.setObjectName(_fromUtf8("qosmDialogBase"))
-        qosmDialogBase.resize(491, 246)
+        qosmDialogBase.resize(491, 294)
         qosmDialogBase.setModal(True)
         self.verticalLayout_3 = QtGui.QVBoxLayout(qosmDialogBase)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
@@ -88,6 +88,10 @@ class Ui_qosmDialogBase(object):
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
         spacerItem1 = QtGui.QSpacerItem(17, 5, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem1)
+        self.statusText = QtGui.QLabel(qosmDialogBase)
+        self.statusText.setWordWrap(True)
+        self.statusText.setObjectName(_fromUtf8("statusText"))
+        self.verticalLayout_3.addWidget(self.statusText)
         self.button_box = QtGui.QDialogButtonBox(qosmDialogBase)
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
@@ -110,4 +114,5 @@ class Ui_qosmDialogBase(object):
         self.downloadTileCache.setText(_translate("qosmDialogBase", "Download Tile Cache...", None))
         self.hasMaxZoom.setText(_translate("qosmDialogBase", "Max Zoom", None))
         self.hasFixedZoom.setText(_translate("qosmDialogBase", "Fixed Zoom", None))
+        self.statusText.setText(_translate("qosmDialogBase", "Loaded %s of %s tiles at zoom level %s (automatic zoom would be %s).", None))
 

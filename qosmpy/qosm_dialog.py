@@ -24,10 +24,11 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsMapLayerRegistry, QgsCoordinateTransform, QgsCoordinateReferenceSystem
 
 import tilemanagement as tm
 import qosmsettings
+import openstreetmap as osm
 
 from ui_qosm_dialog_base import Ui_qosmDialogBase
 from dialog_cachetiles import DialogCachetiles
@@ -40,7 +41,7 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         self.setupUi(self)
         self.refresh_types()
         self.newlayer = False
-        
+        self.iface = iface
         self.cachedialog = DialogCachetiles(self, iface)
     
     def on_downloadTileCache_released(self):
@@ -148,8 +149,31 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
                 self.hasMaxZoom.setChecked(True)
             else:
                 self.maxZoom.setValue(tm.maxzoom(self.layer.tiletype))
-                
             
+            self.set_summarystats()
+        else:
+            self.statusText.setText("")
+         
+    def set_summarystats(self):   
+        numtiles = len(self.layer.loadedlayers)
+        zoom = self.layer.actualzoom if self.layer.specifiedzoom is None else \
+                self.layer.specifiedzoom
+        
+        extent = self.iface.mapCanvas().extent() 
+        crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        widthpx = self.iface.mapCanvas().width()
+        xform = QgsCoordinateTransform(crs,
+                                    QgsCoordinateReferenceSystem(4326))
+        extll = xform.transform(extent)
+        
+        calczoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
+        layerzoom = calczoom if zoom is None else zoom
+        numtilestot = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
+                      extll.yMinimum(), extll.yMaximum(), layerzoom))
+        
+        self.statusText.setText("Loaded %s of %s tiles at zoom level %s (automatic zoom would be %s). \
+                                %s rendering errors (see QOSM Settings/Logs for more details)." %
+                                (numtiles, numtilestot, zoom, calczoom, self.layer.rendererrors))
     
     def get_label(self, tiletype):
         if tiletype in tm.BUILT_IN_LABELS:

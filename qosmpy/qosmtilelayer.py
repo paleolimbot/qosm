@@ -58,6 +58,7 @@ class QOSMTileLayer(QgsPluginLayer):
         self.autorefresh = False
         self.refreshonce = False
         self.forcedownload = False
+        self.rendererrors = 0
         
         self.setMaximumScale(20000000) #1:20,000,000
         self.setScaleBasedVisibility(True)
@@ -73,6 +74,8 @@ class QOSMTileLayer(QgsPluginLayer):
             numtiles = len(osm.tiles(extll.xMinimum(), extll.xMaximum(), 
                           extll.yMinimum(), extll.yMaximum(), self.specifiedzoom))
             if numtiles > qosmsettings.get(qosmsettings.MAX_TILES):
+                log("too many tiles for fixed zoom layer!: %s" % numtiles)
+                self.rendererrors += 1
                 return None
             else:
                 return self.specifiedzoom
@@ -136,9 +139,12 @@ class QOSMTileLayer(QgsPluginLayer):
         #download (keep on same thread for now)
         if not cancelledcallback:
             cancelledcallback = lambda: False
+        dlerrors = []
         downloader.download(tileurls, tilefiles, overwrite=forcedownload, 
-                            errorhandler=log, 
+                            errorhandler=dlerrors.append, 
                             cancelledcallback=cancelledcallback)
+        if dlerrors:
+            self.rendererrors += 1
         return tilestoclean, tilestoload, tilefiles
     
     def refreshtiles_apply(self, tilestoclean, tilestoload, tilefiles, extent):
@@ -241,6 +247,7 @@ class QOSMTileLayer(QgsPluginLayer):
         except Exception as e:
             log("error drawing: " + str(e))
             log(traceback.format_exc())
+            self.rendererrors += 1
             return False
             
         
