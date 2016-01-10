@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_qosmDialogCacheTiles(object):
     def setupUi(self, qosmDialogCacheTiles):
         qosmDialogCacheTiles.setObjectName(_fromUtf8("qosmDialogCacheTiles"))
-        qosmDialogCacheTiles.resize(333, 198)
+        qosmDialogCacheTiles.resize(336, 219)
         qosmDialogCacheTiles.setModal(True)
         self.verticalLayout = QtGui.QVBoxLayout(qosmDialogCacheTiles)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
@@ -60,6 +60,9 @@ class Ui_qosmDialogCacheTiles(object):
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 0, 1, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
+        self.doOverwrite = QtGui.QCheckBox(qosmDialogCacheTiles)
+        self.doOverwrite.setObjectName(_fromUtf8("doOverwrite"))
+        self.verticalLayout.addWidget(self.doOverwrite)
         self.progressBar = QtGui.QProgressBar(qosmDialogCacheTiles)
         self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
@@ -84,5 +87,6 @@ class Ui_qosmDialogCacheTiles(object):
         self.label.setText(_translate("qosmDialogCacheTiles", "Min Zoom", None))
         self.numtilestext.setText(_translate("qosmDialogCacheTiles", "1 tile (up to 15 kb)", None))
         self.label_2.setText(_translate("qosmDialogCacheTiles", "Max Zoom", None))
+        self.doOverwrite.setText(_translate("qosmDialogCacheTiles", "Overwrite existing tiles", None))
         self.statusText.setText(_translate("qosmDialogCacheTiles", "Ready to download.", None))
 

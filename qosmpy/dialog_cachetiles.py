@@ -47,7 +47,8 @@ class DialogCachetiles(QDialog, Ui_qosmDialogCacheTiles):
     def set_tiletype(self, tiletype):
         self.tiletype = tiletype
         self.statusText.setText("Ready to download.")
-        self.set_progress(0, 100)
+        self.set_progress(0, 100, False)
+        self.doOverwrite.setChecked(False)
     
     def autoset_minmax(self):
 
@@ -90,7 +91,7 @@ class DialogCachetiles(QDialog, Ui_qosmDialogCacheTiles):
         maxzoom = self.maxZoom.value()
         tilelist = tiles(self.extent, minzoom, maxzoom)
                 
-        self.thread = DownloaderThread(self, self.tiletype, tilelist)
+        self.thread = DownloaderThread(self, self.tiletype, tilelist, self.doOverwrite.isChecked())
         self.thread.finished.connect(self.download_finished)
         self.thread.progress.connect(self.set_progress)
         self.thread.error.connect(self.add_error)
@@ -137,6 +138,9 @@ class DialogCachetiles(QDialog, Ui_qosmDialogCacheTiles):
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
         haderrors = len(self.errors) != 0
         self.errors = []
+        
+        self.thread = None
+        
         if not haderrors:
             self.statusText.setText("Download complete.")
 
@@ -146,10 +150,11 @@ class DownloaderThread(QThread):
     progress = pyqtSignal(int, int)
     error = pyqtSignal(unicode)
     
-    def __init__(self, parent, tiletype, tilelist):
+    def __init__(self, parent, tiletype, tilelist, overwrite):
         super(DownloaderThread, self).__init__(parent)
         self.tiletype = tiletype
         self.tilelist = tilelist
+        self.overwrite = overwrite
         self.cancelled = False
     
     def isCancelled(self):
@@ -165,17 +170,18 @@ class DownloaderThread(QThread):
         tilefiles = [tm.filename(cachedir, self.tiletype, tile[0:2], tile[2]) for tile in self.tilelist]
         tileurls = [tm.tileurl(self.tiletype, tile[0:2], tile[2]) for tile in self.tilelist]
         
-        #remove existing files
-        indicies = []
-        for i in range(len(tilefiles)):
-            if os.path.exists(tilefiles[i]):
-                indicies.append(i)
-        log("removing %s tiles that already exist" % len(indicies))
-        for i in reversed(indicies):
-            tilefiles.pop(i)
-            tileurls.pop(i)
+        if not self.overwrite:
+            #remove existing files
+            indicies = []
+            for i in range(len(tilefiles)):
+                if os.path.exists(tilefiles[i]):
+                    indicies.append(i)
+            log("removing %s tiles that already exist" % len(indicies))
+            for i in reversed(indicies):
+                tilefiles.pop(i)
+                tileurls.pop(i)
         
-        downloader.download(tileurls, tilefiles, errorhandler=self.emiterror, progresshandler=self.emitprogress,
+        downloader.download(tileurls, tilefiles, self.overwrite, errorhandler=self.emiterror, progresshandler=self.emitprogress,
                             cancelledcallback=self.isCancelled)
         
     def emitprogress(self, value, maximum):

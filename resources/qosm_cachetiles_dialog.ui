@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>333</width>
-    <height>198</height>
+    <width>336</width>
+    <height>219</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,6 +84,13 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="doOverwrite">
+     <property name="text">
+      <string>Overwrite existing tiles</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QProgressBar" name="progressBar">
