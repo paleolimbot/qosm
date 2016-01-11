@@ -56,7 +56,7 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
     def on_addCustomType_released(self):
         #validate url
         urlpattern = unicode(self.customUrl.text())
-        if self.valid_urlpattern(urlpattern):
+        if tm.valid_urlpattern(urlpattern):
             urlpattern = urlpattern.strip()
             currenttype = self.get_type(urlpattern)
             if not currenttype is None:
@@ -75,12 +75,6 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         else:
             QMessageBox.information(self, "QOSM Error", 
                 "Invalid URL pattern (must contain ${x}, ${y} and ${z} or ${quadkey}")
-    
-    def valid_urlpattern(self, urlpattern):
-        return ("://" in urlpattern) and \
-            ((("${x}" in urlpattern) and 
-              ("${y}" in urlpattern) and 
-              ("${z}" in urlpattern)) or ("${quadkey}" in urlpattern))
     
     def add_custom_type(self, urlpattern, label):
         customtypes = qosmsettings.get(qosmsettings.CUSTOM_TILE_TYPES)
@@ -169,9 +163,7 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         extent = self.iface.mapCanvas().extent() 
         crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
         widthpx = self.iface.mapCanvas().width()
-        xform = QgsCoordinateTransform(crs,
-                                    QgsCoordinateReferenceSystem(4326))
-        extll = xform.transform(extent)
+        extll = osm.unproject(extent, crs)
         
         calczoom = osm.autozoom(widthpx/(extll.xMaximum()-extll.xMinimum()))
         layerzoom = calczoom if zoom is None else zoom

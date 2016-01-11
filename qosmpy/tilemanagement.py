@@ -45,6 +45,13 @@ BUILT_IN_LABELS = {"osm":"Open Street Map",
                   "stamenwatercolor":"Stamen (Watercolor)",
                   "mapquestsat":"Mapquest Satellite"} #only 8 in rosm?
 
+def valid_urlpattern(self, urlpattern):
+        return ("://" in urlpattern) and \
+            ((("${x}" in urlpattern) and 
+              ("${y}" in urlpattern) and 
+              ("${z}" in urlpattern)) or ("${quadkey}" in urlpattern))
+
+
 def tileurl(tiletype, tile, zoom, suffix=""):
     '''
     Would probably like to be able to pass a custom format in here. Support

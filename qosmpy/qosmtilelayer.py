@@ -10,7 +10,7 @@ import traceback
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from qgis.core import QgsProject, QgsPluginLayer, QgsPluginLayerType, QgsCoordinateTransform, \
+from qgis.core import QgsProject, QgsPluginLayer, QgsPluginLayerType, \
                         QgsCoordinateReferenceSystem, QgsRasterLayer, QgsLogger, QgsMapLayerRegistry, \
                         QgsMapRenderer, QgsBilinearRasterResampler, QgsRectangle, \
                         QgsMapLayerRenderer
@@ -136,9 +136,7 @@ class QOSMTileLayer(QgsPluginLayer):
             self.triggerRepaint()
     
     def refreshtiles_get(self, canvasextent, canvascrs, widthpx, forcedownload=False, cancelledcallback=None):
-        xform = QgsCoordinateTransform(canvascrs,
-                                    QgsCoordinateReferenceSystem(4326))
-        extll = xform.transform(canvasextent)
+        extll = osm.unproject(canvasextent, canvascrs)
         
         zoom = self.zoom(widthpx, extll)
         if zoom is None or self.tiletype is None:

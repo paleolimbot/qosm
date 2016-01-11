@@ -6,6 +6,10 @@ from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsR
 __PROJECTOR = QgsCoordinateTransform(QgsCoordinateReferenceSystem(4326), 
                                      QgsCoordinateReferenceSystem(3857))
 
+def unproject(extent, crs):
+    xform = QgsCoordinateTransform(crs, QgsCoordinateReferenceSystem(4326))
+    return xform.transformBoundingBox(extent)
+
 def nwcorner(tilex, tiley, zoom):
     n = 2.0 ** zoom
     lon_deg = tilex / n * 360.0 - 180.0

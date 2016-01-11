@@ -9,8 +9,6 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem
-
 import qosmsettings
 import tilemanagement as tm
 import openstreetmap as osm
@@ -40,9 +38,7 @@ class DialogCachetiles(QDialog, Ui_qosmDialogCacheTiles):
     def set_extent(self):
         extent = self.iface.mapCanvas().extent()
         crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
-        xform = QgsCoordinateTransform(crs,
-                                    QgsCoordinateReferenceSystem(4326))
-        self.extent = xform.transform(extent)
+        self.extent = osm.unproject(extent, crs)
     
     def set_tiletype(self, tiletype):
         self.tiletype = tiletype
