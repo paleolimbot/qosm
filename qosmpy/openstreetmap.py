@@ -10,6 +10,18 @@ def unproject(extent, crs):
     xform = QgsCoordinateTransform(crs, QgsCoordinateReferenceSystem(4326))
     return xform.transformBoundingBox(extent)
 
+def quadkey(tilex, tiley, zoom):
+    nzoom = 2 ** zoom
+    out = ""
+    keymap = [["0", "1"],["2", "3"]]
+    decx = float(tilex)/float(nzoom)
+    decy = float(tiley)/float(nzoom)
+    for i in range(1,zoom+1):
+        x = int(decx*(2**i)) - int(decx*(2**(i-1)))*2
+        y = int(decy*(2**i)) - int(decy*(2**(i-1)))*2
+        out += keymap[y][x]
+    return out
+
 def nwcorner(tilex, tiley, zoom):
     n = 2.0 ** zoom
     lon_deg = tilex / n * 360.0 - 180.0

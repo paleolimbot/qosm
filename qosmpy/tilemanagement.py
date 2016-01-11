@@ -7,6 +7,7 @@ Created on Dec 30, 2015
 import os
 import hashlib
 import random
+import openstreetmap as osm
 
 BUILT_IN_TILETYPES = {"osm":["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
                              "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
@@ -45,7 +46,7 @@ BUILT_IN_LABELS = {"osm":"Open Street Map",
                   "stamenwatercolor":"Stamen (Watercolor)",
                   "mapquestsat":"Mapquest Satellite"} #only 8 in rosm?
 
-def valid_urlpattern(self, urlpattern):
+def valid_urlpattern(urlpattern):
         return ("://" in urlpattern) and \
             ((("${x}" in urlpattern) and 
               ("${y}" in urlpattern) and 
@@ -64,7 +65,8 @@ def tileurl(tiletype, tile, zoom, suffix=""):
             pattern = random.sample(pattern, 1)[0]
     else:
         pattern = tiletype
-    return pattern.replace("$", "").format(z=zoom, x=tile[0], y=tile[1])+suffix
+    quadkey = osm.quadkey(tile[0], tile[1], zoom)
+    return pattern.replace("$", "").format(z=zoom, x=tile[0], y=tile[1], quadkey=quadkey)+suffix
 
 def tileext(tiletype, tile=(0,0), zoom=0):
     url = tileurl(tiletype, tile, zoom)
