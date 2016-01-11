@@ -3,5 +3,6 @@
         <file>icon_newlayer.png</file>
         <file>icon_refresh.png</file>
         <file>icon_settings.png</file>
+        <file>icon.png</file>
     </qresource>
 </RCC>

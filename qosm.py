@@ -23,7 +23,7 @@
 import os.path
 
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, pyqtSlot
-from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QAction, QIcon, QMenu
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QgsPluginLayerRegistry
 
 import qosmpy.resources_rc
@@ -67,10 +67,10 @@ class qosm:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&qosm')
+        self.menu = self.tr(u'&QOSM')
         
-        self.toolbar = self.iface.addToolBar(u'qosm')
-        self.toolbar.setObjectName(u'qosm')
+        self.toolbar = self.iface.addToolBar(u'QOSM')
+        self.toolbar.setObjectName(u'QOSM')
         
         self.layers = []
 
@@ -155,9 +155,7 @@ class qosm:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToWebMenu(
-                self.menu,
-                action)
+            self.menuObject.addAction(action)
 
         self.actions.append(action)
 
@@ -171,6 +169,16 @@ class qosm:
         qosmlogging.log("Initizlizing GUI")
         
         self.settingsdialog = DialogSettings(None)
+        
+        #add menu to web
+        self.menuObject = QMenu(self.menu)
+        self.menuObject.setIcon(QIcon(":/plugins/qosm/icon.png"))
+        
+        tmpAction = QAction("_tmp", self.iface.mainWindow())
+        self.iface.addPluginToWebMenu("_tmp", tmpAction)
+        self._menu = self.iface.webMenu()
+        self._menu.addMenu(self.menuObject)
+        self.iface.removePluginWebMenu("_tmp", tmpAction)        
         
         self.add_action(
             ':/plugins/qosm/icon_newlayer.png',
@@ -199,9 +207,12 @@ class qosm:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginWebMenu(
-                self.tr(u'&qosm'),
+                self.tr(u'&QOSM'),
                 action)
             self.iface.removeToolBarIcon(action)
+            
+        self.iface.webMenu().removeAction(self.menuObject.menuAction())
+            
         # remove the toolbar
         del self.toolbar
         

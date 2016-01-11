@@ -7,17 +7,17 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=qosm
+name=QOSM
 qgisMinimumVersion=2.10
 description=Open Street Map tiles in QGIS
 version=0.1
-author=Dewey Dunnington / Fish & Whistle
+author=Dewey Dunnington
 email=dewey@fishandwhistle.net
 
-about=Download and automatically use Open Street Map <http://www.openstreetmap.org/>, Mapquest <http://www.mapquest.com/>, Bing Maps <http://www.bing.com/maps> and other tiled map sources.
+about=Download and use Open Street Map <http://www.openstreetmap.org/> and other tiled basemap sources. Similar to the OpenLayers plugin and TMS layers, except QOSM has smarter cacheing, works better in non-cylindrical projections, and offers options to cache tiles and manipulate zoom levels.
 
 tracker=http://github.com/paleolimbot/qosm/issues
-repository=http://github.com/paleolimbot/qosm/issues
+repository=http://github.com/paleolimbot/qosm
 # End of mandatory metadata
 
 # Recommended items:
@@ -26,7 +26,7 @@ repository=http://github.com/paleolimbot/qosm/issues
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=web, tiles, bing
+tags=web, tiles, Open Street Map, basemap, openlayers, webmaps
 
 homepage=http://www.fishandwhistle.net/
 category=Web

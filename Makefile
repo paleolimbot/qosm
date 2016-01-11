@@ -44,7 +44,7 @@ SOURCES = \
 
 PLUGINNAME = qosm
 
-PLUGINFILES = qosm.py __init__.py metadata.txt
+PLUGINFILES = qosm.py __init__.py metadata.txt icon.png
 PYMODULE = qosmpy
 RES_DIR = resources
 
