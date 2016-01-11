@@ -215,6 +215,7 @@ class qosm:
             
         # remove the toolbar
         del self.toolbar
+        del self.menuObject
         
         QgsPluginLayerRegistry.instance().removePluginLayerType(QOSMTileLayer.LAYER_TYPE)
         QgsMapLayerRegistry.instance().layersWillBeRemoved["QStringList"].disconnect(self.cleanLayerResources)
