@@ -132,7 +132,12 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
     
     def set_layer(self, layer, applyvalues=True):
         self.layer = layer
+    
         if applyvalues:
+            #check to make sure tiletype is in spinner. add if this is not true
+            index = self.maptypeSpinner.findData(layer.tiletype)
+            if index == -1:
+                self.add_custom_type(layer.tiletype, "imported from project")
             self.autorefresh.setChecked(layer.autorefresh)
             self.set_selected_type(layer.tiletype)
             self.customUrl.setText("")
