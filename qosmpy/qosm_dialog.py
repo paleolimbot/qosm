@@ -209,7 +209,7 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         
         #apply values to layer object
         if self.layer.autorefresh != self.autorefresh.isChecked():
-            self.layer.autorefresh = self.autorefresh.isChecked()
+            self.layer.set_autorefresh(self.autorefresh.isChecked())
             
         tiletypevalue = self.maptypeSpinner.itemData(self.maptypeSpinner.currentIndex())
         if self.newlayer:
@@ -221,17 +221,17 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
                        self.get_label(tiletypevalue))
             self.layer.setLayerName(layername)
             #set new tiletype and clean old tiles
-            self.layer.tiletype = tiletypevalue
+            self.layer.set_tiletype(tiletypevalue)
             self.layer.cleantiles()
         if self.hasFixedZoom.isChecked():
-            self.layer.specifiedzoom = self.fixedZoom.value()
+            self.layer.set_fixedzoom(self.fixedZoom.value())
         else:
-            self.layer.specifiedzoom = None
+            self.layer.set_fixedzoom(None)
 
         if self.hasMaxZoom.isChecked():
-            self.layer.maxzoom = self.maxZoom.value()
+            self.layer.set_maxzoom(self.maxZoom.value())
         else:
-            self.layer.maxzoom = None
+            self.layer.set_maxzoom(None)
         
         self.layer.triggerRepaint()
         self.newlayer = False

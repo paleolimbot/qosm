@@ -47,20 +47,46 @@ class QOSMTileLayerType(QgsPluginLayerType):
 class QOSMTileLayer(QgsPluginLayer):
     
     LAYER_TYPE = "QOSM_LAYER_TYPE"
+    PROPERTY_TILETYPE = "tiletype"
+    PROPERTY_AUTOREFRESH = "autorefresh"
+    PROPERTY_MAXZOOM = "maxzoom"
+    PROPERTY_FIXEDZOOM = "fixedzoom"
     
     def __init__(self, tiletype, layerName):
         QgsPluginLayer.__init__(self, QOSMTileLayer.LAYER_TYPE, layerName)
-        self.tiletype = tiletype
+        self.set_tiletype(tiletype)
         self.loadedlayers = {}
         self.actualzoom = None
-        self.specifiedzoom = None #autozoom
-        self.maxzoom = None
-        self.autorefresh = False
+        self.set_fixedzoom(None)
+        self.set_maxzoom(None)
+        self.set_autorefresh(False)
         self.refreshonce = False
         self.forcedownload = False
         self.rendererrors = 0
 
         self.setValid(True)
+    
+    def set_tiletype(self, tiletype):
+        self.tiletype = tiletype
+        if tiletype is None:
+            tiletype = ""
+        self.setCustomProperty(QOSMTileLayer.PROPERTY_TILETYPE, tiletype)
+    
+    def set_autorefresh(self, autorefresh):
+        self.autorefresh = autorefresh
+        self.setCustomProperty(QOSMTileLayer.PROPERTY_AUTOREFRESH, autorefresh)
+    
+    def set_maxzoom(self, maxzoom):
+        self.maxzoom = maxzoom
+        if maxzoom is None:
+            maxzoom = ""
+        self.setCustomProperty(QOSMTileLayer.PROPERTY_MAXZOOM, maxzoom)
+    
+    def set_fixedzoom(self, fixedzoom):
+        self.specifiedzoom = fixedzoom
+        if fixedzoom is None:
+            fixedzoom = ""
+        self.setCustomProperty(QOSMTileLayer.PROPERTY_MAXZOOM, fixedzoom)
     
     def zoom(self, widthpx, extll):
         if self.specifiedzoom is None:
@@ -249,7 +275,26 @@ class QOSMTileLayer(QgsPluginLayer):
             log(traceback.format_exc())
             self.rendererrors += 1
             return False
-            
-        
+    
+    def writeXml(self, node, doc):
+        element = node.toElement()
+        # write plugin layer type to project (essential to be read from project)
+        element.setAttribute("type", "plugin")
+        element.setAttribute("name", QOSMTileLayer.LAYER_TYPE)
+        return True  
+          
+    def readXml(self, node):
+        # early read of custom properties
+        self.readCustomProperties(node) 
+        #sync custom properties with object
+        tiletype = self.customProperty(QOSMTileLayer.PROPERTY_TILETYPE, "")
+        self.tiletype = tiletype if tiletype else None
+        self.autorefresh = self.customProperty(QOSMTileLayer.PROPERTY_AUTOREFRESH, True)
+        maxzoom = self.customProperty(QOSMTileLayer.PROPERTY_MAXZOOM, "")
+        self.maxzoom = maxzoom if maxzoom else None
+        fixedzoom = self.customProperty(QOSMTileLayer.PROPERTY_FIXEDZOOM, "")
+        self.specifiedzoom = fixedzoom if fixedzoom else None
+
+        return True   
         
         
