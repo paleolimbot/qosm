@@ -59,9 +59,7 @@ class QOSMTileLayer(QgsPluginLayer):
         self.refreshonce = False
         self.forcedownload = False
         self.rendererrors = 0
-        
-        self.setMaximumScale(20000000) #1:20,000,000
-        self.setScaleBasedVisibility(True)
+
         self.setValid(True)
     
     def zoom(self, widthpx, extll):

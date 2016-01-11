@@ -24,7 +24,9 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from qgis.core import QgsMapLayerRegistry, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+from qgis.core import QgsMapLayerRegistry, QgsCoordinateTransform, \
+                     QgsCoordinateReferenceSystem, QgsRectangle
+from qgis.gui import QgsMessageBar
 
 import tilemanagement as tm
 import qosmsettings
@@ -187,6 +189,24 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         
         
     def accept(self):
+        #check environment to make sure this will work
+        if not self.iface.mapCanvas().mapRenderer().destinationCrs().isValid():
+            if len(QgsMapLayerRegistry.instance().mapLayers()) > 1:
+                self.iface.messageBar().pushMessage("Error", "You need to set a project CRS for QOSM to work!", 
+                                                level=QgsMessageBar.CRITICAL)
+                self.reject()
+            else:
+                #this is the only layer.
+                self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True) # Enable on the fly reprojections
+                self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857)) #best for osm
+                
+                #zoom to USA
+                usa = QgsRectangle(-124.39, 25.82, -66.94, 49.38)
+                xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(4326),
+                                               QgsCoordinateReferenceSystem(3857))
+                usa = xform.transform(usa)
+                self.iface.mapCanvas().setExtent(usa)
+        
         #apply values to layer object
         if self.layer.autorefresh != self.autorefresh.isChecked():
             self.layer.autorefresh = self.autorefresh.isChecked()
