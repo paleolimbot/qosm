@@ -207,7 +207,7 @@ class qosm:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginWebMenu(
-                self.tr(u'&QOSM'),
+                self.menu,
                 action)
             self.iface.removeToolBarIcon(action)
             
