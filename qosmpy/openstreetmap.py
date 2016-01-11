@@ -40,9 +40,9 @@ def tile(lon, lat, zoom):
         maxTile = 2 ** zoom - 1
         n = 2.0 ** zoom
         xtile = int((lon + 180.0) / 360.0 * n)
-        if lat >= 90:
+        if lat >= 85.0511287798066:
             ytile = 0
-        elif lat <= -90:
+        elif lat <= -85.0511287798066:
             ytile = maxTile
         else:
             lat_rad = math.radians(lat)
