@@ -132,7 +132,7 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
             index = self.maptypeSpinner.findData(layer.tiletype)
             if index == -1:
                 self.add_custom_type(layer.tiletype, "imported from project")
-            self.autorefresh.setChecked(layer.autorefresh)
+            self.autorefresh.setChecked(layer.autorefresh is True)
             self.set_selected_type(layer.tiletype)
             self.customUrl.setText("")
             
@@ -187,6 +187,9 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
         
     def accept(self):
         #check environment to make sure this will work
+        
+        self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True)
+        
         if not self.iface.mapCanvas().mapRenderer().destinationCrs().isValid():
             if len(QgsMapLayerRegistry.instance().mapLayers()) > 1:
                 self.iface.messageBar().pushMessage("Error", "You need to set a project CRS for QOSM to work!", 
@@ -194,7 +197,6 @@ class QosmDialog(QDialog, Ui_qosmDialogBase):
                 self.reject()
             else:
                 #this is the only layer.
-                self.iface.mapCanvas().mapRenderer().setProjectionsEnabled(True) # Enable on the fly reprojections
                 self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857)) #best for osm
                 
                 #zoom to USA

@@ -286,12 +286,12 @@ class QOSMTileLayer(QgsPluginLayer):
         self.readCustomProperties(node) 
         #sync custom properties with object
         tiletype = self.customProperty(QOSMTileLayer.PROPERTY_TILETYPE, "")
-        self.tiletype = tiletype if tiletype else None
+        self.tiletype = tiletype if tiletype != "" else None
         self.autorefresh = self.customProperty(QOSMTileLayer.PROPERTY_AUTOREFRESH, True)
         maxzoom = self.customProperty(QOSMTileLayer.PROPERTY_MAXZOOM, "")
-        self.maxzoom = maxzoom if maxzoom else None
+        self.maxzoom = maxzoom if maxzoom != "" else None
         fixedzoom = self.customProperty(QOSMTileLayer.PROPERTY_FIXEDZOOM, "")
-        self.specifiedzoom = fixedzoom if fixedzoom else None
+        self.specifiedzoom = fixedzoom if fixedzoom != "" else None
 
         return True   
         
